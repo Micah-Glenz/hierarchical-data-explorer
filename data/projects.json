@@ -1,0 +1,164 @@
+[
+  {
+    "id": 101,
+    "customer_id": 1,
+    "name": "Cloud Migration Project",
+    "status": "in_progress",
+    "budget": 250000,
+    "start_date": "2024-02-01",
+    "quote_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 102,
+    "customer_id": 1,
+    "name": "Security Audit",
+    "status": "completed",
+    "budget": 75000,
+    "start_date": "2024-01-20",
+    "quote_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 103,
+    "customer_id": 1,
+    "name": "API Development",
+    "status": "planning",
+    "budget": 120000,
+    "start_date": "2024-05-01",
+    "quote_count": 0,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 201,
+    "customer_id": 2,
+    "name": "Production Line Automation",
+    "status": "in_progress",
+    "budget": 450000,
+    "start_date": "2024-03-15",
+    "quote_count": 3,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 202,
+    "customer_id": 2,
+    "name": "Quality Control System",
+    "status": "approved",
+    "budget": 180000,
+    "start_date": "2024-04-10",
+    "quote_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 301,
+    "customer_id": 3,
+    "name": "E-commerce Platform",
+    "status": "in_progress",
+    "budget": 320000,
+    "start_date": "2024-03-20",
+    "quote_count": 4,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094782"
+  },
+  {
+    "id": 302,
+    "customer_id": 3,
+    "name": "Mobile App Development",
+    "status": "planning",
+    "budget": 150000,
+    "start_date": "2024-06-01",
+    "quote_count": 0,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094785"
+  },
+  {
+    "id": 303,
+    "customer_id": 3,
+    "name": "Payment Gateway Integration",
+    "status": "completed",
+    "budget": 95000,
+    "start_date": "2024-02-15",
+    "quote_count": 1,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094786"
+  },
+  {
+    "id": 304,
+    "customer_id": 3,
+    "name": "Customer Analytics Dashboard",
+    "status": "in_review",
+    "budget": 85000,
+    "start_date": "2024-04-01",
+    "quote_count": 2,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094787"
+  },
+  {
+    "id": 401,
+    "customer_id": 4,
+    "name": "Patient Management System",
+    "status": "planning",
+    "budget": 550000,
+    "start_date": "2024-07-01",
+    "quote_count": 0,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 501,
+    "customer_id": 5,
+    "name": "Fleet Management System",
+    "status": "in_progress",
+    "budget": 200000,
+    "start_date": "2024-02-10",
+    "quote_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 502,
+    "customer_id": 5,
+    "name": "Warehouse Automation",
+    "status": "approved",
+    "budget": 380000,
+    "start_date": "2024-03-25",
+    "quote_count": 1,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:18:20.529896"
+  },
+  {
+    "id": 503,
+    "name": "Test Project Alpha",
+    "budget": 150000.0,
+    "status": "active",
+    "start_date": "2025-10-13",
+    "customer_id": 6,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:16:55.295080"
+  },
+  {
+    "id": 504,
+    "name": "fffasdfasdf",
+    "budget": 23.0,
+    "status": "active",
+    "start_date": "2025-10-13",
+    "customer_id": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 505,
+    "name": "ffefefefefef",
+    "budget": 1.0,
+    "status": "active",
+    "start_date": "2025-10-13",
+    "customer_id": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  }
+]

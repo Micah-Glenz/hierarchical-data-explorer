@@ -1,0 +1,209 @@
+[
+  {
+    "id": 1001,
+    "project_id": 101,
+    "name": "AWS Infrastructure Setup",
+    "status": "approved",
+    "amount": 125000,
+    "valid_until": "2024-06-30",
+    "freight_request_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 1002,
+    "project_id": 101,
+    "name": "Database Migration Services",
+    "status": "in_review",
+    "amount": 95000,
+    "valid_until": "2024-07-15",
+    "freight_request_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 1003,
+    "project_id": 102,
+    "name": "Penetration Testing Package",
+    "status": "completed",
+    "amount": 45000,
+    "valid_until": "2024-05-01",
+    "freight_request_count": 0,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 2001,
+    "project_id": 201,
+    "name": "Robotic Arm Installation",
+    "status": "approved",
+    "amount": 280000,
+    "valid_until": "2024-08-31",
+    "freight_request_count": 3,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 2002,
+    "project_id": 201,
+    "name": "Control System Software",
+    "status": "pending",
+    "amount": 120000,
+    "valid_until": "2024-09-15",
+    "freight_request_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 2003,
+    "project_id": 201,
+    "name": "Sensor Network Setup",
+    "status": "planning",
+    "amount": 45000,
+    "valid_until": "2024-10-01",
+    "freight_request_count": 0,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 2004,
+    "project_id": 202,
+    "name": "Quality Control Hardware",
+    "status": "approved",
+    "amount": 150000,
+    "valid_until": "2024-09-30",
+    "freight_request_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 3001,
+    "project_id": 301,
+    "name": "Frontend Development",
+    "status": "in_progress",
+    "amount": 120000,
+    "valid_until": "2024-07-31",
+    "freight_request_count": 1,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094797"
+  },
+  {
+    "id": 3002,
+    "project_id": 301,
+    "name": "Backend API Services",
+    "status": "in_review",
+    "amount": 145000,
+    "valid_until": "2024-08-15",
+    "freight_request_count": 2,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094798"
+  },
+  {
+    "id": 3003,
+    "project_id": 301,
+    "name": "Database Design",
+    "status": "completed",
+    "amount": 35000,
+    "valid_until": "2024-06-01",
+    "freight_request_count": 0,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094800"
+  },
+  {
+    "id": 3004,
+    "project_id": 301,
+    "name": "Security Implementation",
+    "status": "planning",
+    "amount": 20000,
+    "valid_until": "2024-09-01",
+    "freight_request_count": 0,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094802"
+  },
+  {
+    "id": 3005,
+    "project_id": 303,
+    "name": "Stripe Integration",
+    "status": "completed",
+    "amount": 60000,
+    "valid_until": "2024-05-15",
+    "freight_request_count": 1,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094803"
+  },
+  {
+    "id": 3006,
+    "project_id": 304,
+    "name": "Analytics Dashboard UI",
+    "status": "in_review",
+    "amount": 50000,
+    "valid_until": "2024-08-31",
+    "freight_request_count": 1,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094805"
+  },
+  {
+    "id": 3007,
+    "project_id": 304,
+    "name": "Data Processing Pipeline",
+    "status": "pending",
+    "amount": 25000,
+    "valid_until": "2024-09-15",
+    "freight_request_count": 0,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094806"
+  },
+  {
+    "id": 5001,
+    "project_id": 501,
+    "name": "GPS Tracking System",
+    "status": "approved",
+    "amount": 110000,
+    "valid_until": "2024-08-15",
+    "freight_request_count": 2,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:18:09.335030"
+  },
+  {
+    "id": 5002,
+    "project_id": 501,
+    "name": "Fleet Management Software",
+    "status": "in_progress",
+    "amount": 75000,
+    "valid_until": "2024-09-01",
+    "freight_request_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 5003,
+    "project_id": 502,
+    "name": "Automated Storage System",
+    "status": "approved",
+    "amount": 320000,
+    "valid_until": "2024-10-31",
+    "freight_request_count": 3,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:18:20.529916"
+  },
+  {
+    "id": 5004,
+    "name": "Test Quote Beta",
+    "amount": 75000.0,
+    "status": "active",
+    "valid_until": "2025-12-31",
+    "project_id": 503,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:16:55.295093"
+  },
+  {
+    "id": 5005,
+    "name": "efefefe",
+    "amount": 1424.0,
+    "status": "active",
+    "valid_until": "",
+    "project_id": 201,
+    "is_deleted": false,
+    "deleted_at": null
+  }
+]

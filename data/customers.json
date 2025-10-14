@@ -1,0 +1,61 @@
+[
+  {
+    "id": 1,
+    "name": "TechCorp Solutions",
+    "status": "active",
+    "industry": "Technology",
+    "created_date": "2024-01-15",
+    "project_count": 3,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 2,
+    "name": "Global Manufacturing Inc - Updated",
+    "status": "active",
+    "industry": "Manufacturing",
+    "created_date": "2024-02-20",
+    "project_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 3,
+    "name": "Retail Dynamics Ltd",
+    "status": "in_progress",
+    "industry": "Retail",
+    "created_date": "2024-03-10",
+    "project_count": 4,
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:17:48.094711"
+  },
+  {
+    "id": 4,
+    "name": "Healthcare Systems Group",
+    "status": "planning",
+    "industry": "Healthcare",
+    "created_date": "2024-04-05",
+    "project_count": 1,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 5,
+    "name": "Logistics Plus International",
+    "status": "active",
+    "industry": "Logistics",
+    "created_date": "2024-01-28",
+    "project_count": 2,
+    "is_deleted": false,
+    "deleted_at": null
+  },
+  {
+    "id": 6,
+    "name": "Test Customer Company",
+    "industry": "Technology",
+    "status": "active",
+    "created_date": "2025-10-13",
+    "is_deleted": true,
+    "deleted_at": "2025-10-13T15:16:55.295053"
+  }
+]

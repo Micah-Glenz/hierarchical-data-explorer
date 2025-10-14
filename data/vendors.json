@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "name": "Express Freight Solutions",
+        "specialty": "Express Shipping",
+        "rating": 4.8
+    },
+    {
+        "id": 2,
+        "name": "Heavy Haul Transport",
+        "specialty": "Heavy Equipment",
+        "rating": 4.6
+    },
+    {
+        "id": 3,
+        "name": "Global Logistics Network",
+        "specialty": "International Shipping",
+        "rating": 4.5
+    },
+    {
+        "id": 4,
+        "name": "Tech Components Shipping",
+        "specialty": "Electronics Transport",
+        "rating": 4.9
+    },
+    {
+        "id": 5,
+        "name": "Industrial Freight Co",
+        "specialty": "Industrial Equipment",
+        "rating": 4.3
+    }
+]

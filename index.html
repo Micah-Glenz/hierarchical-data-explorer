@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Data Explorer</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+    <div x-data="dataExplorer()"
+         @select-customer.window="selectCustomer($event.detail)"
+         @select-project.window="selectProject($event.detail)"
+         @select-quote.window="selectQuote($event.detail)"
+         @select-freight-request.window="selectFreightRequest($event.detail)"
+         class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-container">
+                <div>
+                    <h1 class="header-title">Hierarchical Data Explorer</h1>
+                    <p class="header-subtitle">Customers → Projects → Quotes → Freight Requests</p>
+                </div>
+                <div>
+                    <button @click="clearSelections()" class="sort-button" style="margin-right: 12px;">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-content">
+            <div class="columns-container">
+                <!-- Customers Column -->
+                <div x-data="genericColumn()" class="column" x-init="$watch('customers', () => items = customers)" :items="customers">
+                    <div class="column-header">
+                        <h3 class="column-title">Customers</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('customer')" class="sort-button" title="Add Customer">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.customers" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.customers" class="error-state" x-text="error.customers">
+                        </div>
+                        <div x-show="!loading.customers && !error.customers && sortedItems.length === 0" class="empty-state">
+                            No customers found
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div
+                                class="card"
+                                :class="{ 'selected': selectedCustomer?.id === item.id }"
+                                @click="$dispatch('select-customer', item)"
+                            >
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.industry">• <span x-text="item.industry"></span></span>
+                                    <span x-show="item.project_count">• <span x-text="item.project_count"></span> projects</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Projects Column -->
+                <div x-data="genericColumn()" class="column" x-init="$watch('projects', () => items = projects)" :items="projects" :class="{ 'disabled': !selectedCustomer }">
+                    <div class="column-header">
+                        <h3 class="column-title">Projects</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('project')" class="sort-button" title="Add Project"
+                                    :disabled="!selectedCustomer" :class="{ 'disabled': !selectedCustomer }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="budget">Budget</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.projects" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.projects" class="error-state" x-text="error.projects">
+                        </div>
+                        <div x-show="!loading.projects && !error.projects && sortedItems.length === 0 && selectedCustomer" class="empty-state">
+                            No projects found
+                        </div>
+                        <div x-show="!selectedCustomer" class="empty-state">
+                            Select a customer to view projects
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div
+                                class="card"
+                                :class="{ 'selected': selectedProject?.id === item.id }"
+                                @click="$dispatch('select-project', item)"
+                            >
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.budget">• <span x-text="formatCurrency(item.budget)"></span></span>
+                                    <span x-show="item.quote_count">• <span x-text="item.quote_count"></span> quotes</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Quotes Column -->
+                <div x-data="genericColumn()" class="column" x-init="$watch('quotes', () => items = quotes)" :items="quotes" :class="{ 'disabled': !selectedProject }">
+                    <div class="column-header">
+                        <h3 class="column-title">Quotes</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('quote')" class="sort-button" title="Add Quote"
+                                    :disabled="!selectedProject" :class="{ 'disabled': !selectedProject }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="amount">Amount</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.quotes" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.quotes" class="error-state" x-text="error.quotes">
+                        </div>
+                        <div x-show="!loading.quotes && !error.quotes && sortedItems.length === 0 && selectedProject" class="empty-state">
+                            No quotes found
+                        </div>
+                        <div x-show="!selectedProject" class="empty-state">
+                            Select a project to view quotes
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div
+                                class="card"
+                                :class="{ 'selected': selectedQuote?.id === item.id }"
+                                @click="$dispatch('select-quote', item)"
+                            >
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.amount">• <span x-text="formatCurrency(item.amount)"></span></span>
+                                    <span x-show="item.freight_request_count">• <span x-text="item.freight_request_count"></span> requests</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Freight Requests Column -->
+                <div x-data="genericColumn()" class="column" x-init="$watch('freightRequests', () => items = freightRequests)" :items="freightRequests" :class="{ 'disabled': !selectedQuote }">
+                    <div class="column-header">
+                        <h3 class="column-title">Freight Requests</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('freight-request')" class="sort-button" title="Add Freight Request"
+                                    :disabled="!selectedQuote" :class="{ 'disabled': !selectedQuote }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="priority">Priority</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.freightRequests" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.freightRequests" class="error-state" x-text="error.freightRequests">
+                        </div>
+                        <div x-show="!loading.freightRequests && !error.freightRequests && sortedItems.length === 0 && selectedQuote" class="empty-state">
+                            No freight requests found
+                        </div>
+                        <div x-show="!selectedQuote" class="empty-state">
+                            Select a quote to view freight requests
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div
+                                class="card"
+                                :class="{ 'selected': selectedFreightRequest?.id === item.id }"
+                                @click="$dispatch('select-freight-request', item)"
+                            >
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.vendor_name">• <span x-text="item.vendor_name"></span></span>
+                                    <span x-show="item.weight">• <span x-text="item.weight"></span> kg</span>
+                                    <span x-show="item.priority">• <span x-text="item.priority"></span> priority</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Details Pane -->
+                <div class="column details-pane">
+                    <div x-show="!selectedCustomer && !selectedProject && !selectedQuote && !selectedFreightRequest" class="details-empty-state">
+                        Select an item to view details
+                    </div>
+
+                    <!-- Details Accordion -->
+                    <div x-show="selectedCustomer || selectedProject || selectedQuote || selectedFreightRequest">
+                        <div class="cds--accordion">
+                            <!-- Customer Details -->
+                            <div x-show="selectedCustomer" class="cds--accordion__item">
+                                <div class="cds--accordion__heading" @click="toggleAccordion('customer')">
+                                    <span class="cds--accordion__title">
+                                        Customer: <span x-text="selectedCustomer?.name"></span>
+                                    </span>
+                                    <div class="accordion-actions">
+                                        <button @click.stop="openEditModal('customer', selectedCustomer)" class="action-button">Edit</button>
+                                        <button @click.stop="confirmDelete('customer', selectedCustomer?.id)" class="action-button delete">Delete</button>
+                                    </div>
+                                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 6l3 3 3-3H5z"/>
+                                    </svg>
+                                </div>
+                                <div class="cds--accordion__content" :class="{'cds--accordion__content--open': openAccordions.customer}">
+                                    <div class="accordion-content">
+                                        <div class="hierarchy-item hierarchy-level-1">
+                                            <div class="field-row">
+                                                <span class="field-label">Industry:</span>
+                                                <span class="field-value" x-text="selectedCustomer?.industry"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Status:</span>
+                                                <span class="field-value" x-text="selectedCustomer?.status"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Projects:</span>
+                                                <span class="field-value" x-text="selectedCustomer?.project_count"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Project Details -->
+                            <div x-show="selectedProject" class="cds--accordion__item">
+                                <div class="cds--accordion__heading" @click="toggleAccordion('project')">
+                                    <span class="cds--accordion__title">
+                                        Project: <span x-text="selectedProject?.name"></span>
+                                    </span>
+                                    <div class="accordion-actions">
+                                        <button @click.stop="openEditModal('project', selectedProject)" class="action-button">Edit</button>
+                                        <button @click.stop="confirmDelete('project', selectedProject?.id)" class="action-button delete">Delete</button>
+                                    </div>
+                                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 6l3 3 3-3H5z"/>
+                                    </svg>
+                                </div>
+                                <div class="cds--accordion__content" :class="{'cds--accordion__content--open': openAccordions.project}">
+                                    <div class="accordion-content">
+                                        <div class="hierarchy-item hierarchy-level-2">
+                                            <div class="field-row">
+                                                <span class="field-label">Budget:</span>
+                                                <span class="field-value" x-text="formatCurrency(selectedProject?.budget)"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Status:</span>
+                                                <span class="field-value" x-text="selectedProject?.status"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Start Date:</span>
+                                                <span class="field-value" x-text="selectedProject?.start_date"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quote Details -->
+                            <div x-show="selectedQuote" class="cds--accordion__item">
+                                <div class="cds--accordion__heading" @click="toggleAccordion('quote')">
+                                    <span class="cds--accordion__title">
+                                        Quote: <span x-text="selectedQuote?.name"></span>
+                                    </span>
+                                    <div class="accordion-actions">
+                                        <button @click.stop="openEditModal('quote', selectedQuote)" class="action-button">Edit</button>
+                                        <button @click.stop="confirmDelete('quote', selectedQuote?.id)" class="action-button delete">Delete</button>
+                                    </div>
+                                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 6l3 3 3-3H5z"/>
+                                    </svg>
+                                </div>
+                                <div class="cds--accordion__content" :class="{'cds--accordion__content--open': openAccordions.quote}">
+                                    <div class="accordion-content">
+                                        <div class="hierarchy-item hierarchy-level-3">
+                                            <div class="field-row">
+                                                <span class="field-label">Amount:</span>
+                                                <span class="field-value" x-text="formatCurrency(selectedQuote?.amount)"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Status:</span>
+                                                <span class="field-value" x-text="selectedQuote?.status"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Valid Until:</span>
+                                                <span class="field-value" x-text="selectedQuote?.valid_until"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Freight Request Details -->
+                            <div x-show="selectedFreightRequest" class="cds--accordion__item">
+                                <div class="cds--accordion__heading" @click="toggleAccordion('freight')">
+                                    <span class="cds--accordion__title">
+                                        Freight Request: <span x-text="selectedFreightRequest?.name"></span>
+                                    </span>
+                                    <div class="accordion-actions">
+                                        <button @click.stop="openEditModal('freight-request', selectedFreightRequest)" class="action-button">Edit</button>
+                                        <button @click.stop="confirmDelete('freight-request', selectedFreightRequest?.id)" class="action-button delete">Delete</button>
+                                    </div>
+                                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 6l3 3 3-3H5z"/>
+                                    </svg>
+                                </div>
+                                <div class="cds--accordion__content" :class="{'cds--accordion__content--open': openAccordions.freight}">
+                                    <div class="accordion-content">
+                                        <div class="hierarchy-item hierarchy-level-4">
+                                            <div class="field-row">
+                                                <span class="field-label">Vendor:</span>
+                                                <span class="field-value" x-text="selectedFreightRequest?.vendor_name"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Weight:</span>
+                                                <span class="field-value" x-text="selectedFreightRequest?.weight + ' kg'"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Priority:</span>
+                                                <span class="field-value" x-text="selectedFreightRequest?.priority"></span>
+                                            </div>
+                                            <div class="field-row">
+                                                <span class="field-label">Est. Delivery:</span>
+                                                <span class="field-value" x-text="selectedFreightRequest?.estimated_delivery"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Create Modal -->
+        <div x-show="showModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50"
+             @click="handleBackdropClick($event)">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div x-show="showModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95"
+                     class="bg-white rounded-lg shadow-xl max-w-md w-full">
+
+                    <!-- Modal Header -->
+                    <div class="flex items-center p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="getModalTitle()"></h3>
+                    </div>
+
+                    <!-- Static Breadcrumb Navigation -->
+                    <div class="modal-breadcrumb">
+                        <nav class="breadcrumb-nav">
+                            <ol class="breadcrumb-list">
+                                <li class="breadcrumb-item">
+                                    <span class="breadcrumb-static">Home</span>
+                                </li>
+
+                                <!-- Customer Breadcrumb -->
+                                <li x-show="modalType === 'customer'" class="breadcrumb-item current">
+                                    <span x-text="isEdit ? 'Edit Customer' : 'New Customer'"></span>
+                                </li>
+
+                                <!-- Project Breadcrumb -->
+                                <template x-if="modalType === 'project' && selectedCustomer">
+                                    <li class="breadcrumb-item">
+                                        <span class="breadcrumb-static" x-text="selectedCustomer.name"></span>
+                                    </li>
+                                    <li class="breadcrumb-item current">
+                                        <span x-text="isEdit ? 'Edit Project' : 'New Project'"></span>
+                                    </li>
+                                </template>
+
+                                <!-- Quote Breadcrumb -->
+                                <li x-show="modalType === 'quote'" class="breadcrumb-item">
+                                    <span class="breadcrumb-static" x-text="selectedCustomer?.name || 'Customer'"></span>
+                                </li>
+                                <li x-show="modalType === 'quote'" class="breadcrumb-item">
+                                    <span class="breadcrumb-static" x-text="selectedProject?.name || 'Project'"></span>
+                                </li>
+                                <li x-show="modalType === 'quote'" class="breadcrumb-item current">
+                                    <span x-text="isEdit ? 'Edit Quote' : 'New Quote'"></span>
+                                </li>
+
+                                <!-- Freight Request Breadcrumb -->
+                                <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                                    <span class="breadcrumb-static" x-text="selectedCustomer?.name || 'Customer'"></span>
+                                </li>
+                                <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                                    <span class="breadcrumb-static" x-text="selectedProject?.name || 'Project'"></span>
+                                </li>
+                                <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                                    <span class="breadcrumb-static" x-text="selectedQuote?.name || 'Quote'"></span>
+                                </li>
+                                <li x-show="modalType === 'freight-request'" class="breadcrumb-item current">
+                                    <span x-text="isEdit ? 'Edit Freight Request' : 'New Freight Request'"></span>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <form @submit.prevent="submitForm()">
+                        <div class="p-6">
+                            <!-- Customer Form -->
+                            <div x-show="modalType === 'customer'">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                        <input type="text" name="name" x-model="modalData.name" :required="modalType === 'customer'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.name" class="text-red-500 text-sm mt-1" x-text="validationErrors.name"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Industry *</label>
+                                        <select name="industry" x-model="modalData.industry" :required="modalType === 'customer'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Select Industry</option>
+                                            <option value="Technology">Technology</option>
+                                            <option value="Manufacturing">Manufacturing</option>
+                                            <option value="Retail">Retail</option>
+                                            <option value="Healthcare">Healthcare</option>
+                                            <option value="Logistics">Logistics</option>
+                                            <option value="Finance">Finance</option>
+                                            <option value="Construction">Construction</option>
+                                            <option value="Energy">Energy</option>
+                                        </select>
+                                        <div x-show="validationErrors.industry" class="text-red-500 text-sm mt-1" x-text="validationErrors.industry"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                                        <select name="status" x-model="modalData.status" :required="modalType === 'customer'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="active">Active</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="on_hold">On Hold</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Created Date *</label>
+                                        <input type="date" name="created_date" x-model="modalData.created_date" :required="modalType === 'customer'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Project Form -->
+                            <div x-show="modalType === 'project'">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                        <input type="text" name="name" x-model="modalData.name" :required="modalType === 'project'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.name" class="text-red-500 text-sm mt-1" x-text="validationErrors.name"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Budget *</label>
+                                        <input type="number" name="budget" x-model="modalData.budget" :required="modalType === 'project'" step="0.01" min="0"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.budget" class="text-red-500 text-sm mt-1" x-text="validationErrors.budget"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                                        <select name="status" x-model="modalData.status" :required="modalType === 'project'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="active">Active</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="on_hold">On Hold</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                                        <input type="date" name="start_date" x-model="modalData.start_date" :required="modalType === 'project'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <input type="hidden" x-model="modalData.customer_id">
+                                </div>
+                            </div>
+
+                            <!-- Quote Form -->
+                            <div x-show="modalType === 'quote'">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                        <input type="text" name="name" x-model="modalData.name" :required="modalType === 'quote'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.name" class="text-red-500 text-sm mt-1" x-text="validationErrors.name"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                                        <input type="number" name="amount" x-model="modalData.amount" :required="modalType === 'quote'" step="0.01" min="0"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.amount" class="text-red-500 text-sm mt-1" x-text="validationErrors.amount"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                                        <select name="status" x-model="modalData.status" :required="modalType === 'quote'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="active">Active</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="on_hold">On Hold</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+                                        <input type="date" name="valid_until" x-model="modalData.valid_until"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <input type="hidden" x-model="modalData.project_id">
+                                </div>
+                            </div>
+
+                            <!-- Freight Request Form -->
+                            <div x-show="modalType === 'freight-request'">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                        <input type="text" name="name" x-model="modalData.name" :required="modalType === 'freight-request'"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.name" class="text-red-500 text-sm mt-1" x-text="validationErrors.name"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Vendor *</label>
+                                        <select name="vendor_id" x-model="modalData.vendor_id" :required="modalType === 'freight-request'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Select Vendor</option>
+                                            <template x-for="vendor in vendors" :key="vendor.id">
+                                                <option :value="vendor.id" x-text="vendor.name"></option>
+                                            </template>
+                                        </select>
+                                        <div x-show="validationErrors.vendor_id" class="text-red-500 text-sm mt-1" x-text="validationErrors.vendor_id"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                                        <select name="status" x-model="modalData.status" :required="modalType === 'freight-request'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="active">Active</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="on_hold">On Hold</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg) *</label>
+                                        <input type="number" name="weight" x-model="modalData.weight" :required="modalType === 'freight-request'" step="0.1" min="0"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <div x-show="validationErrors.weight" class="text-red-500 text-sm mt-1" x-text="validationErrors.weight"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority *</label>
+                                        <select name="priority" x-model="modalData.priority" :required="modalType === 'freight-request'"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="low">Low</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High</option>
+                                            <option value="critical">Critical</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Delivery</label>
+                                        <input type="date" name="estimated_delivery" x-model="modalData.estimated_delivery"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <input type="hidden" x-model="modalData.quote_id">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="flex items-center justify-end p-6 border-t border-gray-200 space-x-3">
+                            <button type="button" @click="closeModal()"
+                                    class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" :disabled="isSubmitting"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <span x-show="!isSubmitting" x-text="isEdit ? 'Update' : 'Create'"></span>
+                                <span x-show="isSubmitting" x-text="isEdit ? 'Updating...' : 'Creating...'"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Currency Formatter -->
+    <script>
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount || 0);
+        }
+    </script>
+
+    <!-- Main Data Explorer Component -->
+    <script>
+        function dataExplorer() {
+            return {
+                customers: [],
+                projects: [],
+                quotes: [],
+                freightRequests: [],
+                vendors: [],
+
+                selectedCustomer: null,
+                selectedProject: null,
+                selectedQuote: null,
+                selectedFreightRequest: null,
+
+                loading: {
+                    customers: false,
+                    projects: false,
+                    quotes: false,
+                    freightRequests: false
+                },
+
+                error: {
+                    customers: null,
+                    projects: null,
+                    quotes: null,
+                    freightRequests: null
+                },
+
+                openAccordions: {
+                    customer: true,
+                    project: true,
+                    quote: true,
+                    freight: true
+                },
+
+                // Modal state
+                showModal: false,
+                modalType: null,
+                modalData: {},
+                isEdit: false,
+                editItemId: null,
+                isSubmitting: false,
+                validationErrors: {},
+
+                init() {
+                    this.loadCustomers();
+                    this.loadVendors();
+                },
+
+                async loadCustomers() {
+                    this.loading.customers = true;
+                    this.error.customers = null;
+                    try {
+                        const response = await fetch('/api/customers');
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        this.customers = await response.json();
+                    } catch (error) {
+                        console.error('Error loading customers:', error);
+                        this.error.customers = 'Failed to load customers';
+                    }
+                    this.loading.customers = false;
+                },
+
+                async selectCustomer(customer) {
+                    // Clear all lower-level selections and data immediately
+                    this.selectedCustomer = customer;
+                    this.selectedProject = null;
+                    this.selectedQuote = null;
+                    this.selectedFreightRequest = null;
+
+                    // Clear lower-level data arrays
+                    this.projects = [];
+                    this.quotes = [];
+                    this.freightRequests = [];
+
+                    if (customer) {
+                        await this.loadProjects(customer.id);
+                    }
+                },
+
+                async loadProjects(customerId) {
+                    this.loading.projects = true;
+                    this.error.projects = null;
+                    try {
+                        const response = await fetch(`/api/projects/${customerId}`);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        this.projects = await response.json();
+                    } catch (error) {
+                        console.error('Error loading projects:', error);
+                        this.error.projects = 'Failed to load projects';
+                        this.projects = [];
+                    }
+                    this.loading.projects = false;
+                },
+
+                async selectProject(project) {
+                    // Clear all lower-level selections and data immediately
+                    this.selectedProject = project;
+                    this.selectedQuote = null;
+                    this.selectedFreightRequest = null;
+
+                    // Clear lower-level data arrays
+                    this.quotes = [];
+                    this.freightRequests = [];
+
+                    if (project) {
+                        await this.loadQuotes(project.id);
+                    }
+                },
+
+                async loadQuotes(projectId) {
+                    this.loading.quotes = true;
+                    this.error.quotes = null;
+                    try {
+                        const response = await fetch(`/api/quotes/${projectId}`);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        this.quotes = await response.json();
+                    } catch (error) {
+                        console.error('Error loading quotes:', error);
+                        this.error.quotes = 'Failed to load quotes';
+                        this.quotes = [];
+                    }
+                    this.loading.quotes = false;
+                },
+
+                async selectQuote(quote) {
+                    // Clear all lower-level selections and data immediately
+                    this.selectedQuote = quote;
+                    this.selectedFreightRequest = null;
+
+                    // Clear lower-level data arrays
+                    this.freightRequests = [];
+
+                    if (quote) {
+                        await this.loadFreightRequests(quote.id);
+                    }
+                },
+
+                async loadFreightRequests(quoteId) {
+                    this.loading.freightRequests = true;
+                    this.error.freightRequests = null;
+                    try {
+                        const response = await fetch(`/api/freight-requests/${quoteId}`);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        this.freightRequests = await response.json();
+                    } catch (error) {
+                        console.error('Error loading freight requests:', error);
+                        this.error.freightRequests = 'Failed to load freight requests';
+                        this.freightRequests = [];
+                    }
+                    this.loading.freightRequests = false;
+                },
+
+                selectFreightRequest(freightRequest) {
+                    this.selectedFreightRequest = freightRequest;
+                },
+
+                async loadVendors() {
+                    try {
+                        const response = await fetch('/api/vendors');
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        this.vendors = await response.json();
+                    } catch (error) {
+                        console.error('Error loading vendors:', error);
+                        this.vendors = [];
+                    }
+                },
+
+                clearSelections() {
+                    this.selectedCustomer = null;
+                    this.selectedProject = null;
+                    this.selectedQuote = null;
+                    this.selectedFreightRequest = null;
+                    this.projects = [];
+                    this.quotes = [];
+                    this.freightRequests = [];
+                },
+
+                toggleAccordion(section) {
+                    this.openAccordions[section] = !this.openAccordions[section];
+                },
+
+                formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(amount || 0);
+                },
+
+                // Modal methods
+                openModal(type) {
+                    this.modalType = type;
+                    this.isEdit = false;
+                    this.editItemId = null;
+                    this.validationErrors = {};
+
+                    // Initialize modal data based on type
+                    const today = new Date().toISOString().split('T')[0];
+
+                    switch(type) {
+                        case 'customer':
+                            this.modalData = {
+                                name: '',
+                                industry: '',
+                                status: 'active',
+                                created_date: today
+                            };
+                            break;
+                        case 'project':
+                            if (!this.selectedCustomer) return;
+                            this.modalData = {
+                                name: '',
+                                budget: 0,
+                                status: 'active',
+                                start_date: today,
+                                customer_id: this.selectedCustomer.id
+                            };
+                            break;
+                        case 'quote':
+                            if (!this.selectedProject) return;
+                            this.modalData = {
+                                name: '',
+                                amount: 0,
+                                status: 'active',
+                                valid_until: '',
+                                project_id: this.selectedProject.id
+                            };
+                            break;
+                        case 'freight-request':
+                            if (!this.selectedQuote) return;
+                            this.modalData = {
+                                name: '',
+                                vendor_id: '',
+                                status: 'active',
+                                weight: 0,
+                                priority: 'medium',
+                                estimated_delivery: '',
+                                quote_id: this.selectedQuote.id
+                            };
+                            break;
+                    }
+
+                    this.showModal = true;
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    this.modalType = null;
+                    this.modalData = {};
+                    this.isEdit = false;
+                    this.editItemId = null;
+                    this.validationErrors = {};
+                    this.isSubmitting = false;
+                },
+
+                handleBackdropClick(event) {
+                    // Check if the click is outside the modal content
+                    const modalContent = event.currentTarget.querySelector('.bg-white.rounded-lg.shadow-xl');
+
+                    if (modalContent && !modalContent.contains(event.target)) {
+                        // Click was outside the modal content, close it
+                        this.closeModal();
+                    }
+                },
+
+                getModalTitle() {
+                    if (this.isEdit) {
+                        const titles = {
+                            'customer': 'Edit Customer',
+                            'project': 'Edit Project',
+                            'quote': 'Edit Quote',
+                            'freight-request': 'Edit Freight Request'
+                        };
+                        return titles[this.modalType] || 'Edit Item';
+                    } else {
+                        const titles = {
+                            'customer': 'New Customer',
+                            'project': 'New Project',
+                            'quote': 'New Quote',
+                            'freight-request': 'New Freight Request'
+                        };
+                        return titles[this.modalType] || 'New Item';
+                    }
+                },
+
+                async submitForm() {
+                    this.isSubmitting = true;
+                    this.validationErrors = {};
+
+                    try {
+                        // Client-side validation
+                        if (!this.validateForm()) {
+                            this.isSubmitting = false;
+                            return;
+                        }
+
+                        const endpoint = this.isEdit ? this.getApiEndpoint(this.editItemId) : this.getApiEndpoint();
+                        const method = this.isEdit ? 'PUT' : 'POST';
+
+                        const response = await fetch(endpoint, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.modalData)
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            if (response.status === 400 && result.detail) {
+                                // Handle validation errors from server
+                                this.validationErrors = this.parseServerError(result.detail);
+                                return;
+                            }
+                            throw new Error(result.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Success - refresh data and close modal
+                        if (this.isEdit) {
+                            await this.refreshDataAfterUpdate(result.data);
+                            console.log('Item updated successfully:', result.data);
+                        } else {
+                            await this.refreshDataAfterCreate(result.data);
+                            console.log('Item created successfully:', result.data);
+                        }
+
+                        this.closeModal();
+
+                    } catch (error) {
+                        console.error('Error submitting form:', error);
+                        this.validationErrors = { general: 'Failed to submit. Please try again.' };
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                validateForm() {
+                    const errors = {};
+
+                    switch(this.modalType) {
+                        case 'customer':
+                            if (!this.modalData.name?.trim()) {
+                                errors.name = 'Name is required';
+                            }
+                            if (!this.modalData.industry) {
+                                errors.industry = 'Industry is required';
+                            }
+                            if (!this.modalData.created_date) {
+                                errors.created_date = 'Created date is required';
+                            }
+                            break;
+                        case 'project':
+                            if (!this.modalData.name?.trim()) {
+                                errors.name = 'Name is required';
+                            }
+                            if (!this.modalData.budget || this.modalData.budget <= 0) {
+                                errors.budget = 'Budget must be greater than 0';
+                            }
+                            if (!this.modalData.start_date) {
+                                errors.start_date = 'Start date is required';
+                            }
+                            break;
+                        case 'quote':
+                            if (!this.modalData.name?.trim()) {
+                                errors.name = 'Name is required';
+                            }
+                            if (!this.modalData.amount || this.modalData.amount <= 0) {
+                                errors.amount = 'Amount must be greater than 0';
+                            }
+                            break;
+                        case 'freight-request':
+                            if (!this.modalData.name?.trim()) {
+                                errors.name = 'Name is required';
+                            }
+                            if (!this.modalData.vendor_id) {
+                                errors.vendor_id = 'Vendor is required';
+                            }
+                            if (!this.modalData.weight || this.modalData.weight <= 0) {
+                                errors.weight = 'Weight must be greater than 0';
+                            }
+                            break;
+                    }
+
+                    this.validationErrors = errors;
+                    return Object.keys(errors).length === 0;
+                },
+
+                parseServerError(detail) {
+                    // Parse server validation errors into a more usable format
+                    if (typeof detail === 'string') {
+                        return { general: detail };
+                    }
+                    return detail;
+                },
+
+                getApiEndpoint(id = null) {
+                    const endpoints = {
+                        'customer': '/api/customers',
+                        'project': '/api/projects',
+                        'quote': '/api/quotes',
+                        'freight-request': '/api/freight-requests'
+                    };
+
+                    const baseUrl = endpoints[this.modalType];
+                    return id ? `${baseUrl}/${id}` : baseUrl;
+                },
+
+                async refreshDataAfterCreate(newItem) {
+                    switch(this.modalType) {
+                        case 'customer':
+                            await this.loadCustomers();
+                            break;
+                        case 'project':
+                            await this.loadProjects(this.selectedCustomer.id);
+                            break;
+                        case 'quote':
+                            await this.loadQuotes(this.selectedProject.id);
+                            break;
+                        case 'freight-request':
+                            await this.loadFreightRequests(this.selectedQuote.id);
+                            break;
+                    }
+                },
+
+                async refreshDataAfterUpdate(updatedItem) {
+                    // Update selected item with new data
+                    switch(this.modalType) {
+                        case 'customer':
+                            if (this.selectedCustomer?.id === updatedItem.id) {
+                                this.selectedCustomer = updatedItem;
+                            }
+                            await this.loadCustomers();
+                            break;
+                        case 'project':
+                            if (this.selectedProject?.id === updatedItem.id) {
+                                this.selectedProject = updatedItem;
+                            }
+                            if (this.selectedCustomer) {
+                                await this.loadProjects(this.selectedCustomer.id);
+                            }
+                            break;
+                        case 'quote':
+                            if (this.selectedQuote?.id === updatedItem.id) {
+                                this.selectedQuote = updatedItem;
+                            }
+                            if (this.selectedProject) {
+                                await this.loadQuotes(this.selectedProject.id);
+                            }
+                            break;
+                        case 'freight-request':
+                            if (this.selectedFreightRequest?.id === updatedItem.id) {
+                                this.selectedFreightRequest = updatedItem;
+                            }
+                            if (this.selectedQuote) {
+                                await this.loadFreightRequests(this.selectedQuote.id);
+                            }
+                            break;
+                    }
+                },
+
+                // Edit modal methods
+                openEditModal(type, item) {
+                    if (!item) return;
+
+                    this.modalType = type;
+                    this.isEdit = true;
+                    this.editItemId = item.id;
+                    this.validationErrors = {};
+
+                    // Pre-populate modal data with existing item data
+                    switch(type) {
+                        case 'customer':
+                            this.modalData = {
+                                name: item.name || '',
+                                industry: item.industry || '',
+                                status: item.status || 'active',
+                                created_date: item.created_date || ''
+                            };
+                            break;
+                        case 'project':
+                            this.modalData = {
+                                name: item.name || '',
+                                budget: item.budget || 0,
+                                status: item.status || 'active',
+                                start_date: item.start_date || '',
+                                customer_id: item.customer_id
+                            };
+                            break;
+                        case 'quote':
+                            this.modalData = {
+                                name: item.name || '',
+                                amount: item.amount || 0,
+                                status: item.status || 'active',
+                                valid_until: item.valid_until || '',
+                                project_id: item.project_id
+                            };
+                            break;
+                        case 'freight-request':
+                            this.modalData = {
+                                name: item.name || '',
+                                vendor_id: item.vendor_id || '',
+                                status: item.status || 'active',
+                                weight: item.weight || 0,
+                                priority: item.priority || 'medium',
+                                estimated_delivery: item.estimated_delivery || '',
+                                quote_id: item.quote_id
+                            };
+                            break;
+                    }
+
+                    this.showModal = true;
+                },
+
+                // Delete confirmation and execution methods
+                confirmDelete(type, id) {
+                    if (!id) return;
+
+                    const typeLabels = {
+                        'customer': 'Customer',
+                        'project': 'Project',
+                        'quote': 'Quote',
+                        'freight-request': 'Freight Request'
+                    };
+
+                    const typeLabel = typeLabels[type] || 'Item';
+
+                    // Check for cascade implications
+                    let cascadeMessage = '';
+                    if (type === 'customer') {
+                        cascadeMessage = 'This will also delete all related projects, quotes, and freight requests.';
+                    } else if (type === 'project') {
+                        cascadeMessage = 'This will also delete all related quotes and freight requests.';
+                    } else if (type === 'quote') {
+                        cascadeMessage = 'This will also delete all related freight requests.';
+                    }
+
+                    if (confirm(`Are you sure you want to delete this ${typeLabel}? ${cascadeMessage}`)) {
+                        this.deleteItem(type, id);
+                    }
+                },
+
+                async deleteItem(type, id) {
+                    try {
+                        // Store current modalType and temporarily set it for getApiEndpoint
+                        const originalModalType = this.modalType;
+                        this.modalType = type;
+                        const endpoint = this.getApiEndpoint(id);
+                        this.modalType = originalModalType;
+                        const response = await fetch(endpoint, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(result.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Refresh data after successful delete
+                        await this.refreshDataAfterDelete(type);
+
+                        // Clear selections if deleted item was selected
+                        this.clearSelectionsIfDeleted(type, id);
+
+                        console.log(`${type} deleted successfully:`, result.message);
+
+                    } catch (error) {
+                        console.error(`Error deleting ${type}:`, error);
+                        alert(`Failed to delete ${type}. Please try again.`);
+                    }
+                },
+
+                async refreshDataAfterDelete(type) {
+                    switch(type) {
+                        case 'customer':
+                            await this.loadCustomers();
+                            this.selectedCustomer = null;
+                            this.selectedProject = null;
+                            this.selectedQuote = null;
+                            this.selectedFreightRequest = null;
+                            this.projects = [];
+                            this.quotes = [];
+                            this.freightRequests = [];
+                            break;
+                        case 'project':
+                            if (this.selectedCustomer) {
+                                await this.loadProjects(this.selectedCustomer.id);
+                            }
+                            this.selectedProject = null;
+                            this.selectedQuote = null;
+                            this.selectedFreightRequest = null;
+                            this.quotes = [];
+                            this.freightRequests = [];
+                            break;
+                        case 'quote':
+                            if (this.selectedProject) {
+                                await this.loadQuotes(this.selectedProject.id);
+                            }
+                            this.selectedQuote = null;
+                            this.selectedFreightRequest = null;
+                            this.freightRequests = [];
+                            break;
+                        case 'freight-request':
+                            if (this.selectedQuote) {
+                                await this.loadFreightRequests(this.selectedQuote.id);
+                            }
+                            this.selectedFreightRequest = null;
+                            break;
+                    }
+                },
+
+                clearSelectionsIfDeleted(type, deletedId) {
+                    if (type === 'customer' && this.selectedCustomer?.id === deletedId) {
+                        this.selectedCustomer = null;
+                        this.selectedProject = null;
+                        this.selectedQuote = null;
+                        this.selectedFreightRequest = null;
+                    } else if (type === 'project' && this.selectedProject?.id === deletedId) {
+                        this.selectedProject = null;
+                        this.selectedQuote = null;
+                        this.selectedFreightRequest = null;
+                    } else if (type === 'quote' && this.selectedQuote?.id === deletedId) {
+                        this.selectedQuote = null;
+                        this.selectedFreightRequest = null;
+                    } else if (type === 'freight-request' && this.selectedFreightRequest?.id === deletedId) {
+                        this.selectedFreightRequest = null;
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Generic Column Component Definition -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('genericColumn', () => ({
+                items: [],
+                sortBy: 'name',
+                sortOrder: 'asc',
+
+                init() {
+                    // Items will be set via the :items binding and watch mechanism
+                },
+
+                get sortedItems() {
+                    return [...this.items].sort((a, b) => {
+                        let aVal = a[this.sortBy] || '';
+                        let bVal = b[this.sortBy] || '';
+
+                        if (typeof aVal === 'string') {
+                            aVal = aVal.toLowerCase();
+                            bVal = bVal.toLowerCase();
+                        }
+
+                        if (this.sortOrder === 'asc') {
+                            return aVal > bVal ? 1 : -1;
+                        } else {
+                            return aVal < bVal ? 1 : -1;
+                        }
+                    });
+                },
+
+                toggleSort() {
+                    this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+                }
+            }));
+        });
+    </script>
+
+    </body>
+</html>
