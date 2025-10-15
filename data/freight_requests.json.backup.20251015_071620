@@ -321,27 +321,5 @@
     "estimated_delivery": "2024-12-15",
     "quote_id": 1001,
     "vendor_name": "Express Freight Solutions"
-  },
-  {
-    "id": 50014,
-    "name": "asdf",
-    "vendor_id": 2,
-    "status": "active",
-    "weight": 1.0,
-    "priority": "medium",
-    "estimated_delivery": "2025-10-07",
-    "quote_id": 2001,
-    "vendor_name": "Heavy Haul Transport"
-  },
-  {
-    "id": 50015,
-    "name": "asdf",
-    "vendor_id": 3,
-    "status": "active",
-    "weight": 1.0,
-    "priority": "medium",
-    "estimated_delivery": null,
-    "quote_id": 2001,
-    "vendor_name": "Global Logistics Network"
   }
 ]

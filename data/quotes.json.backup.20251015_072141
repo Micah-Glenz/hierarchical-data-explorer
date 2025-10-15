@@ -205,14 +205,5 @@
     "project_id": 201,
     "is_deleted": false,
     "deleted_at": null
-  },
-  {
-    "id": 5006,
-    "name": "asfd",
-    "amount": 33333.0,
-    "status": "active",
-    "valid_until": null,
-    "project_id": 201,
-    "freight_request_count": 0
   }
 ]
