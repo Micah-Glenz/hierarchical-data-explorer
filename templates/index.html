@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Data Explorer</title>
+
+    <!-- External Dependencies -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/utilities.css">
+</head>
+<body>
+    <div x-data="dataExplorer()"
+         @select-customer.window="selectCustomer($event.detail)"
+         @select-project.window="selectProject($event.detail)"
+         @select-quote.window="selectQuote($event.detail)"
+         @select-freight-request.window="selectFreightRequest($event.detail)"
+         class="app-container">
+
+        <!-- Header -->
+        {% include 'partials/header.html' %}
+
+        <!-- Main Content -->
+        <main class="app-content">
+            <div class="columns-container">
+
+                <!-- Customers Column -->
+                <div x-data="genericColumn()"
+                     class="column"
+                     x-init="$watch('customers', () => items = customers)"
+                     :items="customers">
+                    <div class="column-header">
+                        <h3 class="column-title">Customers</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('customer')" class="sort-button" title="Add Customer">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.customers" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.customers" class="error-state" x-text="error.customers">
+                        </div>
+                        <div x-show="!loading.customers && !error.customers && sortedItems.length === 0" class="empty-state">
+                            No customers found
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div class="card"
+                                 :class="{ 'selected': selectedCustomer?.id === item.id }"
+                                 @click="$dispatch('select-customer', item)">
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.industry">• <span x-text="item.industry"></span></span>
+                                    <span x-show="item.project_count">• <span x-text="item.project_count"></span> projects</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Projects Column -->
+                <div x-data="genericColumn()"
+                     class="column"
+                     x-init="$watch('projects', () => items = projects)"
+                     :items="projects"
+                     :class="{ 'disabled': !selectedCustomer }">
+                    <div class="column-header">
+                        <h3 class="column-title">Projects</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('project')"
+                                    class="sort-button"
+                                    title="Add Project"
+                                    :disabled="!selectedCustomer"
+                                    :class="{ 'disabled': !selectedCustomer }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="budget">Budget</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.projects" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.projects" class="error-state" x-text="error.projects">
+                        </div>
+                        <div x-show="!loading.projects && !error.projects && sortedItems.length === 0 && selectedCustomer" class="empty-state">
+                            No projects found
+                        </div>
+                        <div x-show="!selectedCustomer" class="empty-state">
+                            Select a customer to view projects
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div class="card"
+                                 :class="{ 'selected': selectedProject?.id === item.id }"
+                                 @click="$dispatch('select-project', item)">
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.budget">• <span x-text="formatCurrency(item.budget)"></span></span>
+                                    <span x-show="item.quote_count">• <span x-text="item.quote_count"></span> quotes</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Quotes Column -->
+                <div x-data="genericColumn()"
+                     class="column"
+                     x-init="$watch('quotes', () => items = quotes)"
+                     :items="quotes"
+                     :class="{ 'disabled': !selectedProject }">
+                    <div class="column-header">
+                        <h3 class="column-title">Quotes</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('quote')"
+                                    class="sort-button"
+                                    title="Add Quote"
+                                    :disabled="!selectedProject"
+                                    :class="{ 'disabled': !selectedProject }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="amount">Amount</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.quotes" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.quotes" class="error-state" x-text="error.quotes">
+                        </div>
+                        <div x-show="!loading.quotes && !error.quotes && sortedItems.length === 0 && selectedProject" class="empty-state">
+                            No quotes found
+                        </div>
+                        <div x-show="!selectedProject" class="empty-state">
+                            Select a project to view quotes
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div class="card"
+                                 :class="{ 'selected': selectedQuote?.id === item.id }"
+                                 @click="$dispatch('select-quote', item)">
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.amount">• <span x-text="formatCurrency(item.amount)"></span></span>
+                                    <span x-show="item.freight_request_count">• <span x-text="item.freight_request_count"></span> requests</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Freight Requests Column -->
+                <div x-data="genericColumn()"
+                     class="column"
+                     x-init="$watch('freightRequests', () => items = freightRequests)"
+                     :items="freightRequests"
+                     :class="{ 'disabled': !selectedQuote }">
+                    <div class="column-header">
+                        <h3 class="column-title">Freight Requests</h3>
+                        <div class="column-controls">
+                            <button @click="openModal('freight-request')"
+                                    class="sort-button"
+                                    title="Add Freight Request"
+                                    :disabled="!selectedQuote"
+                                    :class="{ 'disabled': !selectedQuote }">
+                                +
+                            </button>
+                            <select x-model="sortBy" class="sort-select">
+                                <option value="name">Name</option>
+                                <option value="status">Status</option>
+                                <option value="id">ID</option>
+                                <option value="priority">Priority</option>
+                            </select>
+                            <button @click="toggleSort" class="sort-button">
+                                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="column-content">
+                        <div x-show="loading.freightRequests" class="loading-indicator">
+                            Loading...
+                        </div>
+                        <div x-show="error.freightRequests" class="error-state" x-text="error.freightRequests">
+                        </div>
+                        <div x-show="!loading.freightRequests && !error.freightRequests && sortedItems.length === 0 && selectedQuote" class="empty-state">
+                            No freight requests found
+                        </div>
+                        <div x-show="!selectedQuote" class="empty-state">
+                            Select a quote to view freight requests
+                        </div>
+                        <template x-for="item in sortedItems" :key="item.id">
+                            <div class="card"
+                                 :class="{ 'selected': selectedFreightRequest?.id === item.id }"
+                                 @click="$dispatch('select-freight-request', item)">
+                                <div class="card-title-container">
+                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                                </div>
+                                <p class="card-subtitle">
+                                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                                    <span x-show="item.vendor_name">• <span x-text="item.vendor_name"></span></span>
+                                    <span x-show="item.weight">• <span x-text="item.weight"></span> kg</span>
+                                    <span x-show="item.priority">• <span x-text="item.priority"></span> priority</span>
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Details Pane -->
+                {% include 'partials/details-pane.html' %}
+            </div>
+        </main>
+
+        <!-- Modal -->
+        {% include 'partials/modal.html' %}
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/components.js"></script>
+    <script src="/static/js/data-explorer.js"></script>
+
+    <!-- Global Currency Formatter -->
+    <script>
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount || 0);
+        }
+    </script>
+</body>
+</html>

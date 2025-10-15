@@ -1,0 +1,61 @@
+<!-- Customer creation/edit form -->
+<div class="form-container">
+    <div class="form-field">
+        <label class="form-label">Name *</label>
+        <input type="text"
+               name="name"
+               x-model="modalData.name"
+               :required="modalType === 'customer'"
+               class="form-input">
+        <div x-show="validationErrors.name"
+             class="form-error"
+             x-text="validationErrors.name"></div>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label">Industry *</label>
+        <select name="industry"
+                x-model="modalData.industry"
+                :required="modalType === 'customer'"
+                class="form-input">
+            <option value="">Select Industry</option>
+            <option value="Technology">Technology</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Retail">Retail</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Finance">Finance</option>
+            <option value="Construction">Construction</option>
+            <option value="Energy">Energy</option>
+        </select>
+        <div x-show="validationErrors.industry"
+             class="form-error"
+             x-text="validationErrors.industry"></div>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label">Status *</label>
+        <select name="status"
+                x-model="modalData.status"
+                :required="modalType === 'customer'"
+                class="form-input">
+            <option value="active">Active</option>
+            <option value="planning">Planning</option>
+            <option value="in_progress">In Progress</option>
+            <option value="on_hold">On Hold</option>
+            <option value="completed">Completed</option>
+        </select>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label">Created Date *</label>
+        <input type="date"
+               name="created_date"
+               x-model="modalData.created_date"
+               :required="modalType === 'customer'"
+               class="form-input">
+        <div x-show="validationErrors.created_date"
+             class="form-error"
+             x-text="validationErrors.created_date"></div>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+<!-- Modal component for create/edit forms -->
+<div x-show="showModal"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="modal-overlay"
+     @click="handleBackdropClick($event)">
+
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div x-show="showModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95"
+             class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h3 class="modal-title" x-text="getModalTitle()"></h3>
+                <button @click="closeModal()" class="modal-close">×</button>
+            </div>
+
+            <!-- Static Breadcrumb Navigation -->
+            <div class="modal-breadcrumb">
+                <nav class="breadcrumb-nav">
+                    <ol class="breadcrumb-list">
+                        <li class="breadcrumb-item">
+                            <span class="breadcrumb-static">Home</span>
+                        </li>
+
+                        <!-- Customer Breadcrumb -->
+                        <li x-show="modalType === 'customer'" class="breadcrumb-item current">
+                            <span x-text="isEdit ? 'Edit Customer' : 'New Customer'"></span>
+                        </li>
+
+                        <!-- Project Breadcrumb -->
+                        <template x-if="modalType === 'project' && selectedCustomer">
+                            <li class="breadcrumb-item">
+                                <span class="breadcrumb-static" x-text="selectedCustomer?.name"></span>
+                            </li>
+                            <li class="breadcrumb-item current">
+                                <span x-text="isEdit ? 'Edit Project' : 'New Project'"></span>
+                            </li>
+                        </template>
+
+                        <!-- Quote Breadcrumb -->
+                        <li x-show="modalType === 'quote'" class="breadcrumb-item">
+                            <span class="breadcrumb-static" x-text="selectedCustomer?.name || 'Customer'"></span>
+                        </li>
+                        <li x-show="modalType === 'quote'" class="breadcrumb-item">
+                            <span class="breadcrumb-static" x-text="selectedProject?.name || 'Project'"></span>
+                        </li>
+                        <li x-show="modalType === 'quote'" class="breadcrumb-item current">
+                            <span x-text="isEdit ? 'Edit Quote' : 'New Quote'"></span>
+                        </li>
+
+                        <!-- Freight Request Breadcrumb -->
+                        <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                            <span class="breadcrumb-static" x-text="selectedCustomer?.name || 'Customer'"></span>
+                        </li>
+                        <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                            <span class="breadcrumb-static" x-text="selectedProject?.name || 'Project'"></span>
+                        </li>
+                        <li x-show="modalType === 'freight-request'" class="breadcrumb-item">
+                            <span class="breadcrumb-static" x-text="selectedQuote?.name || 'Quote'"></span>
+                        </li>
+                        <li x-show="modalType === 'freight-request'" class="breadcrumb-item current">
+                            <span x-text="isEdit ? 'Edit Freight Request' : 'New Freight Request'"></span>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Modal Body -->
+            <form @submit.prevent="submitForm()">
+                <div class="modal-body">
+                    <!-- Customer Form -->
+                    <div x-show="modalType === 'customer'">
+                        {% include 'partials/forms/customer.html' %}
+                    </div>
+
+                    <!-- Project Form -->
+                    <div x-show="modalType === 'project'">
+                        {% include 'partials/forms/project.html' %}
+                    </div>
+
+                    <!-- Quote Form -->
+                    <div x-show="modalType === 'quote'">
+                        {% include 'partials/forms/quote.html' %}
+                    </div>
+
+                    <!-- Freight Request Form -->
+                    <div x-show="modalType === 'freight-request'">
+                        {% include 'partials/forms/freight-request.html' %}
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button"
+                            @click="closeModal()"
+                            class="btn btn-secondary">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            :disabled="isSubmitting"
+                            class="btn btn-primary">
+                        <span x-show="!isSubmitting" x-text="isEdit ? 'Update' : 'Create'"></span>
+                        <span x-show="isSubmitting" x-text="isEdit ? 'Updating...' : 'Creating...'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

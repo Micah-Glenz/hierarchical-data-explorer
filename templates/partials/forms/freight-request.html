@@ -1,0 +1,95 @@
+<!-- Freight Request creation/edit form -->
+<div class="space-y-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+        <input type="text"
+               name="name"
+               x-model="modalData.name"
+               :required="modalType === 'freight-request'"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div x-show="validationErrors.name"
+             class="text-red-500 text-sm mt-1"
+             x-text="validationErrors.name"></div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Vendor *</label>
+        <select name="vendor_id"
+                x-model="modalData.vendor_id"
+                :required="modalType === 'freight-request'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Select Vendor</option>
+            <template x-for="vendor in vendors" :key="vendor.id">
+                <option :value="vendor.id" x-text="vendor.name"></option>
+            </template>
+        </select>
+        <div x-show="validationErrors.vendor_id"
+             class="text-red-500 text-sm mt-1"
+             x-text="validationErrors.vendor_id"></div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+        <select name="status"
+                x-model="modalData.status"
+                :required="modalType === 'freight-request'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="active">Active</option>
+            <option value="planning">Planning</option>
+            <option value="in_progress">In Progress</option>
+            <option value="on_hold">On Hold</option>
+            <option value="completed">Completed</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg) *</label>
+        <input type="number"
+               name="weight"
+               x-model="modalData.weight"
+               :required="modalType === 'freight-request'"
+               step="0.1"
+               min="0"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div x-show="validationErrors.weight"
+             class="text-red-500 text-sm mt-1"
+             x-text="validationErrors.weight"></div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Priority *</label>
+        <select name="priority"
+                x-model="modalData.priority"
+                :required="modalType === 'freight-request'"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Delivery</label>
+        <input type="date"
+               name="estimated_delivery"
+               x-model="modalData.estimated_delivery"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div x-show="validationErrors.estimated_delivery"
+             class="text-red-500 text-sm mt-1"
+             x-text="validationErrors.estimated_delivery"></div>
+    </div>
+
+    <input type="hidden"
+           x-model="modalData.quote_id">
+
+    <!-- Quote Reference Display -->
+    <div x-show="selectedQuote" class="bg-gray-50 p-3 rounded-md">
+        <div class="text-sm">
+            <div class="text-gray-600">Quote: </div>
+            <div class="font-medium" x-text="selectedQuote?.name"></div>
+            <div class="text-gray-500">Project: <span x-text="selectedProject?.name"></span></div>
+            <div class="text-gray-500">Customer: <span x-text="selectedCustomer?.name"></span></div>
+        </div>
+    </div>
+</div>

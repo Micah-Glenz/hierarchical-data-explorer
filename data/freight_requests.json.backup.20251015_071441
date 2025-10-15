@@ -310,44 +310,5 @@
     "quote_id": 5004,
     "is_deleted": true,
     "deleted_at": "2025-10-13T15:16:55.295703"
-  },
-  {
-    "id": 50013,
-    "name": "Test Shipment Equipment",
-    "vendor_id": 1,
-    "status": "active",
-    "weight": 250.0,
-    "priority": "medium",
-    "estimated_delivery": "2024-12-15",
-    "quote_id": 1001,
-    "vendor_name": "Express Freight Solutions",
-    "is_deleted": false,
-    "deleted_at": null
-  },
-  {
-    "id": 50014,
-    "name": "asdf",
-    "vendor_id": 2,
-    "status": "active",
-    "weight": 1.0,
-    "priority": "medium",
-    "estimated_delivery": "2025-10-07",
-    "quote_id": 2001,
-    "vendor_name": "Heavy Haul Transport",
-    "is_deleted": false,
-    "deleted_at": null
-  },
-  {
-    "id": 50015,
-    "name": "asdf",
-    "vendor_id": 3,
-    "status": "active",
-    "weight": 1.0,
-    "priority": "medium",
-    "estimated_delivery": null,
-    "quote_id": 2001,
-    "vendor_name": "Global Logistics Network",
-    "is_deleted": false,
-    "deleted_at": null
   }
 ]
