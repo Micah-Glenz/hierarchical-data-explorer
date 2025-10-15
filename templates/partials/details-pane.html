@@ -1,0 +1,185 @@
+<!-- Details pane with accordion for selected items -->
+<div class="column details-pane">
+    <!-- Empty State -->
+    <div x-show="!selectedCustomer && !selectedProject && !selectedQuote && !selectedFreightRequest"
+         class="details-empty-state">
+        Select an item to view details
+    </div>
+
+    <!-- Details Accordion -->
+    <div x-show="selectedCustomer || selectedProject || selectedQuote || selectedFreightRequest">
+        <div class="cds--accordion">
+
+            <!-- Customer Details -->
+            <div x-show="selectedCustomer" class="cds--accordion__item">
+                <div class="cds--accordion__heading" @click="toggleAccordion('customer')">
+                    <span class="cds--accordion__title">
+                        Customer: <span x-text="selectedCustomer?.name"></span>
+                    </span>
+                    <div class="accordion-actions">
+                        <button @click.stop="openEditModal('customer', selectedCustomer)"
+                                class="action-button">Edit</button>
+                        <button @click.stop="confirmDelete('customer', selectedCustomer?.id)"
+                                class="action-button delete">Delete</button>
+                    </div>
+                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5 6l3 3 3-3H5z"/>
+                    </svg>
+                </div>
+                <div class="cds--accordion__content"
+                     :class="{'cds--accordion__content--open': openAccordions.customer}">
+                    <div class="accordion-content">
+                        <div class="hierarchy-item hierarchy-level-1">
+                            <div class="field-row">
+                                <span class="field-label">Industry:</span>
+                                <span class="field-value" x-text="selectedCustomer?.industry"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Status:</span>
+                                <span class="field-value" x-text="selectedCustomer?.status"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Projects:</span>
+                                <span class="field-value" x-text="selectedCustomer?.project_count"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Created:</span>
+                                <span class="field-value" x-text="selectedCustomer?.created_date"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Details -->
+            <div x-show="selectedProject" class="cds--accordion__item">
+                <div class="cds--accordion__heading" @click="toggleAccordion('project')">
+                    <span class="cds--accordion__title">
+                        Project: <span x-text="selectedProject?.name"></span>
+                    </span>
+                    <div class="accordion-actions">
+                        <button @click.stop="openEditModal('project', selectedProject)"
+                                class="action-button">Edit</button>
+                        <button @click.stop="confirmDelete('project', selectedProject?.id)"
+                                class="action-button delete">Delete</button>
+                    </div>
+                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5 6l3 3 3-3H5z"/>
+                    </svg>
+                </div>
+                <div class="cds--accordion__content"
+                     :class="{'cds--accordion__content--open': openAccordions.project}">
+                    <div class="accordion-content">
+                        <div class="hierarchy-item hierarchy-level-2">
+                            <div class="field-row">
+                                <span class="field-label">Budget:</span>
+                                <span class="field-value" x-text="formatCurrency(selectedProject?.budget)"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Status:</span>
+                                <span class="field-value" x-text="selectedProject?.status"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Start Date:</span>
+                                <span class="field-value" x-text="selectedProject?.start_date"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Quotes:</span>
+                                <span class="field-value" x-text="selectedProject?.quote_count"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Details -->
+            <div x-show="selectedQuote" class="cds--accordion__item">
+                <div class="cds--accordion__heading" @click="toggleAccordion('quote')">
+                    <span class="cds--accordion__title">
+                        Quote: <span x-text="selectedQuote?.name"></span>
+                    </span>
+                    <div class="accordion-actions">
+                        <button @click.stop="openEditModal('quote', selectedQuote)"
+                                class="action-button">Edit</button>
+                        <button @click.stop="confirmDelete('quote', selectedQuote?.id)"
+                                class="action-button delete">Delete</button>
+                    </div>
+                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5 6l3 3 3-3H5z"/>
+                    </svg>
+                </div>
+                <div class="cds--accordion__content"
+                     :class="{'cds--accordion__content--open': openAccordions.quote}">
+                    <div class="accordion-content">
+                        <div class="hierarchy-item hierarchy-level-3">
+                            <div class="field-row">
+                                <span class="field-label">Amount:</span>
+                                <span class="field-value" x-text="formatCurrency(selectedQuote?.amount)"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Status:</span>
+                                <span class="field-value" x-text="selectedQuote?.status"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Valid Until:</span>
+                                <span class="field-value" x-text="selectedQuote?.valid_until || 'N/A'"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Requests:</span>
+                                <span class="field-value" x-text="selectedQuote?.freight_request_count"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Freight Request Details -->
+            <div x-show="selectedFreightRequest" class="cds--accordion__item">
+                <div class="cds--accordion__heading" @click="toggleAccordion('freight')">
+                    <span class="cds--accordion__title">
+                        Freight Request: <span x-text="selectedFreightRequest?.name"></span>
+                    </span>
+                    <div class="accordion-actions">
+                        <button @click.stop="openEditModal('freight-request', selectedFreightRequest)"
+                                class="action-button">Edit</button>
+                        <button @click.stop="confirmDelete('freight-request', selectedFreightRequest?.id)"
+                                class="action-button delete">Delete</button>
+                    </div>
+                    <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5 6l3 3 3-3H5z"/>
+                    </svg>
+                </div>
+                <div class="cds--accordion__content"
+                     :class="{'cds--accordion__content--open': openAccordions.freight}">
+                    <div class="accordion-content">
+                        <div class="hierarchy-item hierarchy-level-4">
+                            <div class="field-row">
+                                <span class="field-label">Vendor:</span>
+                                <span class="field-value" x-text="selectedFreightRequest?.vendor_name"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Weight:</span>
+                                <span class="field-value" x-text="selectedFreightRequest?.weight + ' kg'"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Priority:</span>
+                                <span class="field-value"
+                                      :class="`priority-${selectedFreightRequest?.priority}`"
+                                      x-text="selectedFreightRequest?.priority"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Status:</span>
+                                <span class="field-value" x-text="selectedFreightRequest?.status"></span>
+                            </div>
+                            <div class="field-row">
+                                <span class="field-label">Est. Delivery:</span>
+                                <span class="field-value" x-text="selectedFreightRequest?.estimated_delivery || 'N/A'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

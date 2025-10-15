@@ -1,0 +1,245 @@
+/**
+ * Base CSS styles for the Hierarchical Data Explorer.
+ *
+ * This module contains CSS custom properties, base typography, and fundamental
+ * styling rules based on the IBM Carbon Design System.
+ */
+
+/* CSS Custom Properties - IBM Carbon Design System */
+:root {
+    /* Brand Colors */
+    --cds-purple-70: #6f3ffc;
+    --cds-purple-20: #f6f2ff;
+    --cds-blue-30: #cce7ff;
+    --cds-blue-60: #4589ff;
+    --cds-blue-70: #0f62fe;
+    --cds-blue-80: #054ada;
+    --cds-gray-10: #f4f4f4;
+    --cds-gray-20: #e0e0e0;
+    --cds-gray-30: #c6c6c6;
+    --cds-gray-50: #8d8d8d;
+    --cds-gray-80: #393939;
+    --cds-gray-90: #262626;
+    --cds-gray-100: #161616;
+    --cds-green-50: #42be65;
+    --cds-green-60: #24a148;
+    --cds-red-60: #da1e28;
+    --cds-red-70: #b82025;
+    --cds-purple-60: #8a3ffc;
+    --cds-purple-70: #6f3ffc;
+    --cds-blue-20: #e5f6ff;
+    --cds-purple-20: #f6f2ff;
+    --cds-red-20: #ffd7d9;
+
+    /* Semantic Colors */
+    --color-primary: var(--cds-blue-70);
+    --color-primary-hover: var(--cds-blue-80);
+    --color-secondary: var(--cds-gray-80);
+    --color-background: #ffffff;
+    --color-surface: var(--cds-gray-10);
+    --color-border: var(--cds-gray-30);
+    --color-text-primary: var(--cds-gray-100);
+    --color-text-secondary: var(--cds-gray-70);
+    --color-text-tertiary: var(--cds-gray-50);
+    --color-success: var(--cds-green-60);
+    --color-error: var(--cds-red-60);
+    --color-warning: #f1c21b;
+    --color-info: var(--cds-blue-60);
+
+    /* IBM Carbon Compatibility Variables */
+    --cds-color-text-primary: var(--color-text-primary);
+    --cds-color-text-secondary: var(--color-text-secondary);
+    --cds-color-background: var(--color-background);
+    --cds-color-background-hover: var(--cds-gray-10);
+    --cds-color-background-selected: var(--cds-blue-20);
+    --cds-color-border-interactive: var(--cds-blue-60);
+    --cds-color-border: var(--color-border);
+    --cds-red-70: #b82025;
+
+    /* Status Badge Colors - Original Values */
+    --status-active-bg: #d4fbda;
+    --status-active-text: #1d5303;
+    --status-completed-bg: #d4fbda;
+    --status-completed-text: #1d5303;
+    --status-approved-bg: #d4fbda;
+    --status-approved-text: #1d5303;
+    --status-in-progress-bg: #d0e2ff;
+    --status-in-progress-text: #002d9c;
+    --status-planning-bg: #f1c2e8;
+    --status-planning-text: #9f1853;
+    --status-pending-bg: #f1f1f1;
+    --status-pending-text: #525252;
+    --status-on-hold-bg: #f1c2e8;
+    --status-on-hold-text: #9f1853;
+    --status-in-review-bg: #d0e2ff;
+    --status-in-review-text: #002d9c;
+    --status-draft-bg: #f1f1f1;
+    --status-draft-text: #525252;
+    --status-rejected-bg: #ffd7d9;
+    --status-rejected-text: #da1e28;
+
+    /* Layout Variables - Original Values */
+    --border-radius-sm: 3px;
+    --border-radius-md: 4px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 15px;
+    --border-radius-pill: 50px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 2px 4px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-xl: 0 8px 24px rgba(0,0,0,0.2);
+    --border-radius: 0.25rem;
+
+    /* Typography - Original Compact Design */
+    --font-family-primary: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-family-fallback: 'Helvetica Neue', Arial, sans-serif;
+    --font-size-xs: 10px;
+    --font-size-sm: 11px;
+    --font-size-base: 12px;
+    --font-size-md: 13px;
+    --font-size-lg: 14px;
+    --font-size-xl: 16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 20px;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.4;
+    --line-height-relaxed: 1.6;
+    --letter-spacing-tight: -0.025em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.025em;
+    --letter-spacing-wider: 0.5px;
+
+    /* Additional CSS Variables for Component Compatibility */
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
+    --transition-slow: 0.5s ease-in-out;
+    --letter-spacing-wider: 0.05em;
+    --border-radius-md: 0.375rem;
+    --border-radius-pill: 9999px;
+
+    /* Layout Spacing - Original Compact Design */
+    --spacing-xs: 2px;
+    --spacing-sm: 4px;
+    --spacing-md: 6px;
+    --spacing-lg: 8px;
+    --spacing-xl: 12px;
+    --spacing-2xl: 16px;
+    --spacing-3xl: 20px;
+    --spacing-4xl: 24px;
+}
+
+/* Base Elements */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    line-height: var(--line-height-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+    margin: 0;
+    padding: 0;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: var(--line-height-tight);
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--color-text-primary);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-base); }
+h6 { font-size: var(--font-size-sm); }
+
+p {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--color-text-secondary);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+}
+
+/* Form Elements */
+input, textarea, select {
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(5, 4, 218, 0.1);
+}
+
+/* Buttons Base */
+button {
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    line-height: var(--line-height-base);
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}

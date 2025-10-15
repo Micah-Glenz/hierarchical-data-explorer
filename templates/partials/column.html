@@ -1,0 +1,76 @@
+<!-- Generic column component for hierarchical data display -->
+<div x-data="genericColumn()"
+     class="column"
+     x-init="$watch('{{ itemsVar }}', () => items = {{ itemsVar }})"
+     :items="{{ itemsVar }}"
+     :class="{ 'disabled': !{{ parentVar }} }">
+
+    <!-- Column Header -->
+    <div class="column-header">
+        <h3 class="column-title">{{ title }}</h3>
+        <div class="column-controls">
+            <button @click="openModal('{{ itemType }}')"
+                    class="sort-button"
+                    title="Add {{ title.slice(0, -1) }}"
+                    :disabled="!{{ parentVar }}"
+                    :class="{ 'disabled': !{{ parentVar }} }">
+                +
+            </button>
+            <select x-model="sortBy" class="sort-select">
+                {% for option in sortOptions %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+                {% endfor %}
+            </select>
+            <button @click="toggleSort" class="sort-button">
+                <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Column Content -->
+    <div class="column-content">
+        <!-- Loading State -->
+        <div x-show="loading.{{ itemTypeVar }}" class="loading-indicator">
+            Loading...
+        </div>
+
+        <!-- Error State -->
+        <div x-show="error.{{ itemTypeVar }}" class="error-state" x-text="error.{{ itemTypeVar }}">
+        </div>
+
+        <!-- Empty State (when no data) -->
+        <div x-show="!loading.{{ itemTypeVar }} && !error.{{ itemTypeVar }} && sortedItems.length === 0 && {{ parentVar }}"
+             class="empty-state">
+            No {{ title.toLowerCase() }} found
+        </div>
+
+        <!-- Empty State (when no parent selected) -->
+        <div x-show="!{{ parentVar }}" class="empty-state">
+            Select a {{ parentLabel }} to view {{ title.toLowerCase() }}
+        </div>
+
+        <!-- Items List -->
+        <template x-for="item in sortedItems" :key="item.id">
+            <div class="card"
+                 :class="{ 'selected': selected{{ selectedVar }}?.id === item.id }"
+                 @click="$dispatch('select-{{ eventType }}', item)">
+
+                <!-- Card Title Container -->
+                <div class="card-title-container">
+                    <h4 class="card-title" x-text="item.name"></h4>
+                    <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
+                </div>
+
+                <!-- Card Subtitle -->
+                <p class="card-subtitle">
+                    <span x-show="item.id">ID: <span x-text="item.id"></span></span>
+                    {% for field in subtitleFields %}
+                    <span x-show="item.{{ field.name }}">
+                        • <span x-text="{{ field.formatter }}(item.{{ field.name }})"></span>
+                    </span>
+                    {% endfor %}
+                </p>
+            </div>
+        </template>
+    </div>
+</div>
