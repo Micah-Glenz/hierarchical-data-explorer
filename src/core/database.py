@@ -6,6 +6,7 @@ writing, and managing JSON files that store the application data.
 """
 
 import json
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,9 @@ from typing import List, Dict, Any, Optional, Union
 
 from .config import get_settings
 from .exceptions import DatabaseOperationError, DataNotFoundError
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -156,6 +160,9 @@ class DatabaseManager:
 
         Args:
             filepath: Path to the file to backup
+
+        Raises:
+            DatabaseOperationError: If backup creation fails and backup is required
         """
         if filepath.exists():
             backup_path = filepath.with_suffix(
@@ -164,9 +171,17 @@ class DatabaseManager:
             try:
                 import shutil
                 shutil.copy2(filepath, backup_path)
-            except Exception:
-                # Log warning but don't fail the operation
-                print(f"Warning: Failed to create backup of {filepath}")
+                logger.debug(f"Created backup: {backup_path}")
+            except (OSError, IOError, PermissionError) as e:
+                # Log the error with details but don't fail the main operation
+                logger.warning(f"Failed to create backup of {filepath}: {str(e)}")
+                # Optionally re-raise if backups are critical for your use case
+                # raise DatabaseOperationError(
+                #     f"Failed to create backup of {filepath}: {str(e)}",
+                #     "backup",
+                #     filepath.name,
+                #     e
+                # )
 
     def get_next_id(self, filename: str) -> int:
         """

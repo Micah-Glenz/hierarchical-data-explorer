@@ -9,6 +9,7 @@ from datetime import date, datetime
 from typing import List, Dict, Any, Optional
 
 from pydantic import BaseModel, Field, validator
+from .dependencies import get_valid_industries, get_valid_statuses, get_valid_priorities
 
 
 class BaseResponse(BaseModel):
@@ -37,7 +38,7 @@ class CustomerBase(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         """Validate status field."""
-        allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+        allowed_statuses = get_valid_statuses()
         if v not in allowed_statuses:
             raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -45,10 +46,7 @@ class CustomerBase(BaseModel):
     @validator('industry')
     def validate_industry(cls, v):
         """Validate industry field."""
-        allowed_industries = [
-            'Technology', 'Manufacturing', 'Retail', 'Healthcare',
-            'Logistics', 'Finance', 'Construction', 'Energy'
-        ]
+        allowed_industries = get_valid_industries()
         if v not in allowed_industries:
             raise ValueError(f'Industry must be one of: {", ".join(allowed_industries)}')
         return v
@@ -66,7 +64,7 @@ class CustomerCreate(CustomerBase):
             datetime.strptime(v, '%Y-%m-%d')
             return v
         except ValueError:
-            raise ValueError('Date must be in YYYY-MM-DD format')
+            raise ValueError('Date must be in YYYY-MM-DD format') from None
 
 
 class CustomerUpdate(BaseModel):
@@ -80,7 +78,7 @@ class CustomerUpdate(BaseModel):
     def validate_status(cls, v):
         """Validate status field if provided."""
         if v is not None:
-            allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+            allowed_statuses = get_valid_statuses()
             if v not in allowed_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -89,10 +87,7 @@ class CustomerUpdate(BaseModel):
     def validate_industry(cls, v):
         """Validate industry field if provided."""
         if v is not None:
-            allowed_industries = [
-                'Technology', 'Manufacturing', 'Retail', 'Healthcare',
-                'Logistics', 'Finance', 'Construction', 'Energy'
-            ]
+            allowed_industries = get_valid_industries()
             if v not in allowed_industries:
                 raise ValueError(f'Industry must be one of: {", ".join(allowed_industries)}')
         return v
@@ -123,7 +118,7 @@ class ProjectBase(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         """Validate status field."""
-        allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+        allowed_statuses = get_valid_statuses()
         if v not in allowed_statuses:
             raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -135,7 +130,7 @@ class ProjectBase(BaseModel):
             datetime.strptime(v, '%Y-%m-%d')
             return v
         except ValueError:
-            raise ValueError('Date must be in YYYY-MM-DD format')
+            raise ValueError('Date must be in YYYY-MM-DD format') from None
 
 
 class ProjectCreate(ProjectBase):
@@ -156,7 +151,7 @@ class ProjectUpdate(BaseModel):
     def validate_status(cls, v):
         """Validate status field if provided."""
         if v is not None:
-            allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+            allowed_statuses = get_valid_statuses()
             if v not in allowed_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -198,7 +193,7 @@ class QuoteBase(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         """Validate status field."""
-        allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+        allowed_statuses = get_valid_statuses()
         if v not in allowed_statuses:
             raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -233,7 +228,7 @@ class QuoteUpdate(BaseModel):
     def validate_status(cls, v):
         """Validate status field if provided."""
         if v is not None:
-            allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+            allowed_statuses = get_valid_statuses()
             if v not in allowed_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -277,7 +272,7 @@ class FreightRequestBase(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         """Validate status field."""
-        allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+        allowed_statuses = get_valid_statuses()
         if v not in allowed_statuses:
             raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -285,7 +280,7 @@ class FreightRequestBase(BaseModel):
     @validator('priority')
     def validate_priority(cls, v):
         """Validate priority field."""
-        allowed_priorities = ['low', 'medium', 'high', 'critical']
+        allowed_priorities = get_valid_priorities()
         if v not in allowed_priorities:
             raise ValueError(f'Priority must be one of: {", ".join(allowed_priorities)}')
         return v
@@ -322,7 +317,7 @@ class FreightRequestUpdate(BaseModel):
     def validate_status(cls, v):
         """Validate status field if provided."""
         if v is not None:
-            allowed_statuses = ['active', 'planning', 'in_progress', 'on_hold', 'completed']
+            allowed_statuses = get_valid_statuses()
             if v not in allowed_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(allowed_statuses)}')
         return v
@@ -331,7 +326,7 @@ class FreightRequestUpdate(BaseModel):
     def validate_priority(cls, v):
         """Validate priority field if provided."""
         if v is not None:
-            allowed_priorities = ['low', 'medium', 'high', 'critical']
+            allowed_priorities = get_valid_priorities()
             if v not in allowed_priorities:
                 raise ValueError(f'Priority must be one of: {", ".join(allowed_priorities)}')
         return v

@@ -323,11 +323,8 @@ async def delete_customer(
                 frs = db.filter_by_field("freight_requests.json", "quote_id", quote["id"])
                 all_frs_to_delete.extend(frs)
 
-        # Mark customer as deleted first
-        if not db.soft_delete_by_id("customers.json", customer_id):
-            raise DatabaseOperationError("Failed to delete customer", "delete", "customers.json")
-
         # Attempt cascade deletion with rollback on failure
+        # Delete dependents FIRST, only delete customer after all dependents succeed
         try:
             # Delete projects and their dependents
             for project in projects_to_delete:
@@ -411,11 +408,15 @@ async def delete_customer(
                     )
                 )
 
+            # All dependents deleted successfully - now delete the customer
+            if not db.soft_delete_by_id("customers.json", customer_id):
+                raise DatabaseOperationError("Failed to delete customer", "delete", "customers.json")
+
             # Success - include all counters in the message
             total_items = deleted_projects + deleted_quotes + deleted_freight_requests
             message = (f"Customer and {deleted_projects} projects, {deleted_quotes} quotes, "
                       f"and {deleted_freight_requests} freight requests deleted successfully "
-                      f"({total_items} total items)")
+                      f"({total_items + 1} total items)")
             return format_success_response(
                 message,
                 {
@@ -424,7 +425,7 @@ async def delete_customer(
                         "projects": deleted_projects,
                         "quotes": deleted_quotes,
                         "freight_requests": deleted_freight_requests,
-                        "total_items": total_items
+                        "total_items": total_items + 1  # +1 for the customer
                     }
                 }
             )

@@ -329,13 +329,13 @@ class ValidationHelper:
         Raises:
             ValueError: If validation fails
         """
-        if not date_str:
-            return date_str  # Optional field
+        if not date_str or not date_str.strip():
+            raise ValueError(f"{field_name} cannot be empty")
 
         try:
             from datetime import datetime
-            datetime.strptime(date_str, '%Y-%m-%d')
-            return date_str
+            datetime.strptime(date_str.strip(), '%Y-%m-%d')
+            return date_str.strip()
         except ValueError:
             raise ValueError(f"{field_name} must be in YYYY-MM-DD format")
 

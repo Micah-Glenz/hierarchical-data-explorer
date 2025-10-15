@@ -59,22 +59,42 @@ function debounce(func, delay) {
 }
 
 /**
- * Deep clone an object to avoid reference issues
+ * Deep clone an object to avoid reference issues with circular reference support
  * @param {Object} obj - The object to clone
  * @returns {Object} The cloned object
  */
-function deepClone(obj) {
+function deepClone(obj, seen = new WeakMap()) {
+    // Handle primitive values and null
     if (obj === null || typeof obj !== 'object') return obj;
-    if (obj instanceof Date) return new Date(obj.getTime());
-    if (obj instanceof Array) return obj.map(item => deepClone(item));
 
-    const cloned = {};
+    // Handle Date objects
+    if (obj instanceof Date) return new Date(obj.getTime());
+
+    // Handle circular references - if we've seen this object before, return the cached clone
+    if (seen.has(obj)) {
+        return seen.get(obj);
+    }
+
+    // Handle arrays
+    if (obj instanceof Array) {
+        const clonedArray = [];
+        seen.set(obj, clonedArray);
+        for (let i = 0; i < obj.length; i++) {
+            clonedArray[i] = deepClone(obj[i], seen);
+        }
+        return clonedArray;
+    }
+
+    // Handle regular objects
+    const clonedObj = {};
+    seen.set(obj, clonedObj);
+
     for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
-            cloned[key] = deepClone(obj[key]);
+            clonedObj[key] = deepClone(obj[key], seen);
         }
     }
-    return cloned;
+    return clonedObj;
 }
 
 /**

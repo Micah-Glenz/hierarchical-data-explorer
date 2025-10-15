@@ -154,22 +154,96 @@ async def delete_project(project_id: int, db=Depends(get_database_manager)):
                 detail=format_error_response(f"Project with ID {project_id} not found", {"resource_id": project_id})
             )
 
-        # Soft delete project
-        if db.soft_delete_by_id("projects.json", project_id):
-            # Cascade delete to quotes
-            quotes = db.filter_by_field("quotes.json", "project_id", project_id)
-            deleted_quotes = 0
-            for quote in quotes:
-                if db.soft_delete_by_id("quotes.json", quote["id"]):
-                    deleted_quotes += 1
-                    # Cascade delete to freight requests
-                    frs = db.filter_by_field("freight_requests.json", "quote_id", quote["id"])
-                    deleted_frs = sum(1 for fr in frs if db.soft_delete_by_id("freight_requests.json", fr["id"]))
+        # Collect quotes to delete before attempting cascade
+        quotes = db.filter_by_field("quotes.json", "project_id", project_id)
+        if not quotes:
+            # No quotes to cascade, just delete project
+            if db.soft_delete_by_id("projects.json", project_id):
+                return format_success_response("Project deleted successfully", {"deleted_project_id": project_id})
+            else:
+                raise DatabaseOperationError("Failed to delete project", "delete", "projects.json")
 
-            message = f"Project and {deleted_quotes} related quotes deleted successfully"
-            return format_success_response(message, {"deleted_project_id": project_id})
-        else:
+        # Track failed deletions
+        failed_quotes = []
+        failed_frs = []
+        deleted_quotes = 0
+        deleted_frs = 0
+
+        # First pass: Identify all dependent freight requests
+        all_frs_to_delete = []
+        for quote in quotes:
+            frs = db.filter_by_field("freight_requests.json", "quote_id", quote["id"])
+            all_frs_to_delete.extend(frs)
+
+        # Attempt cascade deletion
+        for quote in quotes:
+            quote_id = quote["id"]
+            # Delete dependent freight requests first
+            frs = db.filter_by_field("freight_requests.json", "quote_id", quote_id)
+            quote_failed = False
+
+            for fr in frs:
+                fr_id = fr["id"]
+                if not db.soft_delete_by_id("freight_requests.json", fr_id):
+                    failed_frs.append({
+                        "id": fr_id,
+                        "type": "freight_request",
+                        "parent": f"quote_id={quote_id}"
+                    })
+                    quote_failed = True
+                else:
+                    deleted_frs += 1
+
+            if not quote_failed:
+                # Only delete quote if all freight requests were deleted successfully
+                if not db.soft_delete_by_id("quotes.json", quote_id):
+                    failed_quotes.append({
+                        "id": quote_id,
+                        "type": "quote",
+                        "parent": f"project_id={project_id}"
+                    })
+                else:
+                    deleted_quotes += 1
+
+        # Check for failures and handle appropriately
+        if failed_quotes or failed_frs:
+            error_details = {
+                "project_id": project_id,
+                "failed_quotes": failed_quotes,
+                "failed_freight_requests": failed_frs,
+                "successful_deletions": {
+                    "quotes": deleted_quotes,
+                    "freight_requests": deleted_frs
+                }
+            }
+            raise HTTPException(
+                status_code=500,
+                detail=format_error_response(
+                    f"Cascade delete partially failed for project {project_id}. "
+                    f"Failed to delete {len(failed_quotes)} quotes and {len(failed_frs)} freight requests.",
+                    error_details
+                )
+            )
+
+        # All cascade deletions successful - now delete the project
+        if not db.soft_delete_by_id("projects.json", project_id):
             raise DatabaseOperationError("Failed to delete project", "delete", "projects.json")
+
+        # Success - include counters in response
+        total_items = deleted_quotes + deleted_frs
+        message = (f"Project and {deleted_quotes} related quotes with {deleted_frs} freight requests "
+                  f"deleted successfully ({total_items + 1} total items)")
+        return format_success_response(
+            message,
+            {
+                "deleted_project_id": project_id,
+                "deletion_summary": {
+                    "quotes": deleted_quotes,
+                    "freight_requests": deleted_frs,
+                    "total_items": total_items + 1  # +1 for the project
+                }
+            }
+        )
 
     except HTTPException:
         raise

@@ -320,7 +320,9 @@
     "priority": "medium",
     "estimated_delivery": "2024-12-15",
     "quote_id": 1001,
-    "vendor_name": "Express Freight Solutions"
+    "vendor_name": "Express Freight Solutions",
+    "is_deleted": false,
+    "deleted_at": null
   },
   {
     "id": 50014,
@@ -331,7 +333,9 @@
     "priority": "medium",
     "estimated_delivery": "2025-10-07",
     "quote_id": 2001,
-    "vendor_name": "Heavy Haul Transport"
+    "vendor_name": "Heavy Haul Transport",
+    "is_deleted": false,
+    "deleted_at": null
   },
   {
     "id": 50015,
@@ -342,6 +346,8 @@
     "priority": "medium",
     "estimated_delivery": null,
     "quote_id": 2001,
-    "vendor_name": "Global Logistics Network"
+    "vendor_name": "Global Logistics Network",
+    "is_deleted": false,
+    "deleted_at": null
   }
 ]

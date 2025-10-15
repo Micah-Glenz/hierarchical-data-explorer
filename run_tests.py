@@ -16,11 +16,14 @@ def run_command(cmd, description):
     """Run a command and handle the result."""
     print(f"\n{'='*60}")
     print(f"Running: {description}")
-    print(f"Command: {cmd}")
+    print(f"Command: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
     print(f"{'='*60}")
 
     try:
-        result = subprocess.run(cmd, shell=True, check=True, capture_output=False)
+        # Use list form to avoid shell injection - always expect list commands
+        if not isinstance(cmd, list):
+            raise ValueError("Commands must be provided as lists for security")
+        result = subprocess.run(cmd, check=True, capture_output=False)
         print(f"\n✅ {description} completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
@@ -40,49 +43,54 @@ def main():
 
     args = parser.parse_args()
 
-    # Base pytest command
-    base_cmd = "python -m pytest"
+    # Base pytest command as list
+    base_cmd = ["python", "-m", "pytest"]
     if args.verbose:
-        base_cmd += " -vv"
+        base_cmd.append("-vv")
 
     # Add keyword filter if specified
     if args.keyword:
-        base_cmd += f" -k {args.keyword}"
+        # Validate keyword to allow only safe characters
+        import re
+        if not re.match(r'^[a-zA-Z0-9_\s-]+$', args.keyword):
+            print(f"❌ Invalid keyword '{args.keyword}'. Only alphanumeric characters, underscores, hyphens, and spaces are allowed.")
+            sys.exit(1)
+        base_cmd.extend(["-k", args.keyword])
 
     # Add coverage if not disabled
     if not args.no_cov:
-        base_cmd += " --cov=src --cov-report=html --cov-report=term-missing"
+        base_cmd.extend(["--cov=src", "--cov-report=html", "--cov-report=term-missing"])
 
     success = True
 
     if args.command == "all":
         # Run all tests
-        cmd = f"{base_cmd} tests/"
+        cmd = base_cmd + ["tests/"]
         success = run_command(cmd, "All Tests")
 
     elif args.command == "unit":
         # Run unit tests only
-        cmd = f"{base_cmd} tests/ -m 'not integration'"
+        cmd = base_cmd + ["tests/", "-m", "not integration"]
         success = run_command(cmd, "Unit Tests")
 
     elif args.command == "integration":
         # Run integration tests only
-        cmd = f"{base_cmd} tests/ -m integration"
+        cmd = base_cmd + ["tests/", "-m", "integration"]
         success = run_command(cmd, "Integration Tests")
 
     elif args.command == "api":
         # Run API tests only
-        cmd = f"{base_cmd} tests/api/"
+        cmd = base_cmd + ["tests/api/"]
         success = run_command(cmd, "API Tests")
 
     elif args.command == "projects":
         # Run projects tests specifically
-        cmd = f"{base_cmd} tests/api/test_projects.py"
+        cmd = base_cmd + ["tests/api/test_projects.py"]
         success = run_command(cmd, "Projects API Tests")
 
     elif args.command == "coverage":
         # Run tests with coverage report
-        cmd = f"{base_cmd} --cov=src --cov-report=html --cov-report=term"
+        cmd = ["python", "-m", "pytest", "--cov=src", "--cov-report=html", "--cov-report=term"]
         success = run_command(cmd, "Tests with Coverage")
 
         if success:
@@ -94,23 +102,23 @@ def main():
 
         # Try black
         try:
-            cmd = "python -m black --check src tests"
+            cmd = ["python", "-m", "black", "--check", "src", "tests"]
             run_command(cmd, "Black formatting check")
-        except:
+        except (FileNotFoundError, ModuleNotFoundError, subprocess.CalledProcessError):
             print("⚠️  Black not installed, skipping...")
 
         # Try flake8
         try:
-            cmd = "python -m flake8 src tests --max-line-length=100"
+            cmd = ["python", "-m", "flake8", "src", "tests", "--max-line-length=100"]
             run_command(cmd, "Flake8 linting")
-        except:
+        except (FileNotFoundError, ModuleNotFoundError, subprocess.CalledProcessError):
             print("⚠️  Flake8 not installed, skipping...")
 
         # Try mypy
         try:
-            cmd = "python -m mypy src --ignore-missing-imports"
+            cmd = ["python", "-m", "mypy", "src", "--ignore-missing-imports"]
             run_command(cmd, "MyPy type checking")
-        except:
+        except (FileNotFoundError, ModuleNotFoundError, subprocess.CalledProcessError):
             print("⚠️  MyPy not installed, skipping...")
 
     if not success:

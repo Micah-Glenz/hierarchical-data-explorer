@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 from pathlib import Path
 
 # Import core application components
-from src.core.config import Settings
+from src.core.config import Settings, load_env_settings
 from src.core.exceptions import (
     DataExplorerException,
     DataValidationError,
@@ -40,6 +40,7 @@ from src.api.routes import (
 
 # Initialize configuration
 settings = Settings()
+load_env_settings()  # Load environment variables
 
 # Create FastAPI application
 app = FastAPI(
@@ -186,6 +187,6 @@ if __name__ == "__main__":
         "main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=True,
+        reload=settings.DEBUG,
         log_level="info"
     )

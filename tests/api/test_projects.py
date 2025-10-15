@@ -6,7 +6,7 @@ including CRUD operations, validation, error handling, and business logic.
 """
 
 import json
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, Mock
 import pytest
 from fastapi.testclient import TestClient
 
@@ -55,8 +55,7 @@ class TestProjectsAPI:
     def test_get_projects_customer_not_found(self, client, test_db_manager):
         """Test GET projects when customer doesn't exist."""
         with patch('src.api.routes.projects.get_database_manager') as mock_get_db, \
-             patch('src.api.routes.projects.validate_customer_exists') as mock_validate, \
-             patch('src.api.routes.projects.calculate_item_counts') as mock_counts:
+             patch('src.api.routes.projects.validate_customer_exists') as mock_validate:
 
             mock_get_db.return_value = test_db_manager
             mock_validate.return_value = False

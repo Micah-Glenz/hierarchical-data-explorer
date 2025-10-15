@@ -557,11 +557,11 @@ function dataExplorer() {
         },
 
         async deleteItem(type, id) {
+            const originalModalType = this.modalType;
             try {
-                const originalModalType = this.modalType;
+                // Temporarily set modalType to compute endpoint
                 this.modalType = type;
                 const endpoint = this.getApiEndpoint();
-                this.modalType = originalModalType;
 
                 const response = await fetch(`${endpoint}/${id}`, {
                     method: 'DELETE',
@@ -584,6 +584,9 @@ function dataExplorer() {
             } catch (error) {
                 console.error(`Error deleting ${type}:`, error);
                 alert(`Failed to delete ${type}. Please try again.`);
+            } finally {
+                // Always restore original modalType
+                this.modalType = originalModalType;
             }
         },
 
