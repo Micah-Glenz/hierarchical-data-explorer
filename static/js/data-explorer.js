@@ -40,11 +40,12 @@ function dataExplorer() {
 
         // UI state
         openAccordions: {
-            customer: true,
-            project: true,
-            quote: true,
-            freight: true
+            customer: false,
+            project: false,
+            quote: false,
+            freight: false
         },
+        lastClickedLevel: null,
 
         // Modal state
         showModal: false,
@@ -114,7 +115,7 @@ function dataExplorer() {
         },
 
         /**
-         * Selection methods with cascading data loading
+         * Selection methods with cascading data loading and accordion coupling
          */
         async selectCustomer(customer) {
             this.selectedCustomer = customer;
@@ -122,6 +123,8 @@ function dataExplorer() {
 
             if (customer) {
                 await this.loadProjects(customer.id);
+                // Atomic accordion state update - open only customer accordion
+                this.openOnlyAccordion('customer');
             }
         },
 
@@ -131,6 +134,8 @@ function dataExplorer() {
 
             if (project) {
                 await this.loadQuotes(project.id);
+                // Atomic accordion state update - open only project accordion
+                this.openOnlyAccordion('project');
             }
         },
 
@@ -140,11 +145,17 @@ function dataExplorer() {
 
             if (quote) {
                 await this.loadFreightRequests(quote.id);
+                // Atomic accordion state update - open only quote accordion
+                this.openOnlyAccordion('quote');
             }
         },
 
         selectFreightRequest(freightRequest) {
             this.selectedFreightRequest = freightRequest;
+            if (freightRequest) {
+                // Atomic accordion state update - open only freight accordion
+                this.openOnlyAccordion('freight');
+            }
         },
 
         /**
@@ -190,7 +201,46 @@ function dataExplorer() {
          * Accordion management
          */
         toggleAccordion(section) {
+            // Toggle the clicked accordion independently for manual control
+            // Manual accordion interaction should NOT affect card selection
             this.openAccordions[section] = !this.openAccordions[section];
+            // Don't update lastClickedLevel here - it should only be set by card clicks
+        },
+
+        // Open accordion based on hierarchy level when item is selected
+        openAccordionForLevel(level) {
+            // Only open the specific accordion for this level
+            // This is used by card selection logic
+            if (level && this.openAccordions.hasOwnProperty(level)) {
+                this.openAccordions[level] = true;
+                this.lastClickedLevel = level;
+            }
+        },
+
+        closeAllAccordions() {
+            Object.keys(this.openAccordions).forEach(key => {
+                this.openAccordions[key] = false;
+            });
+        },
+
+        // Atomic accordion state update to prevent flicker
+        openOnlyAccordion(level) {
+            if (!level || !this.openAccordions.hasOwnProperty(level)) {
+                return;
+            }
+
+            // Create new state with all accordions closed except target
+            const newState = {
+                customer: false,
+                project: false,
+                quote: false,
+                freight: false
+            };
+            newState[level] = true;
+
+            // Atomic update to prevent intermediate "all closed" state
+            Object.assign(this.openAccordions, newState);
+            this.lastClickedLevel = level;
         },
 
         /**

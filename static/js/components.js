@@ -184,35 +184,304 @@ function modalComponent() {
 }
 
 /**
- * Accordion component for displaying hierarchical details
+ * Enhanced Accordion component for displaying hierarchical details
+ * Features smooth animations, keyboard navigation, and smart state management
  */
 function accordionComponent() {
     return {
         openAccordions: {
-            customer: true,
-            project: true,
-            quote: true,
-            freight: true
+            customer: false,
+            project: false,
+            quote: false,
+            freight: false
+        },
+        lastClickedLevel: null,
+        animatingAccordions: new Set(),
+        expandDuration: 300,
+        collapseDuration: 250,
+
+        init() {
+            // Initialize keyboard navigation
+            this.initKeyboardNavigation();
+            // Add smooth scroll behavior
+            this.initSmoothScroll();
         },
 
+        // Enhanced toggle with animation support
         toggleAccordion(section) {
+            if (this.animatingAccordions.has(section)) {
+                return; // Prevent rapid toggling during animation
+            }
+
+            const isClosing = this.openAccordions[section];
+
+            // Add animation state
+            this.animatingAccordions.add(section);
+
+            // Toggle state
             this.openAccordions[section] = !this.openAccordions[section];
+
+            if (this.openAccordions[section]) {
+                this.lastClickedLevel = section;
+                // Smooth scroll to accordion header
+                this.scrollToAccordion(section);
+                // Dispatch custom event for analytics
+                this.dispatchAccordionEvent('accordion-opened', section);
+            } else {
+                this.dispatchAccordionEvent('accordion-closed', section);
+            }
+
+            // Remove animation state after animation completes
+            setTimeout(() => {
+                this.animatingAccordions.delete(section);
+            }, isClosing ? this.collapseDuration : this.expandDuration);
         },
 
+        // Check if accordion is open
         isAccordionOpen(section) {
             return this.openAccordions[section];
         },
 
+        // Check if accordion is currently animating
+        isAccordionAnimating(section) {
+            return this.animatingAccordions.has(section);
+        },
+
+        // Open all accordions with staggered animation
         openAllAccordions() {
-            Object.keys(this.openAccordions).forEach(key => {
-                this.openAccordions[key] = true;
+            const sections = Object.keys(this.openAccordions);
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    this.openAccordion(section);
+                }, index * 100); // Stagger animations
             });
         },
 
+        // Close all accordions with staggered animation
         closeAllAccordions() {
-            Object.keys(this.openAccordions).forEach(key => {
-                this.openAccordions[key] = false;
+            const sections = Object.keys(this.openAccordions).reverse();
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    this.closeAccordion(section);
+                }, index * 50); // Faster close animation
             });
+        },
+
+        // Open specific accordion
+        openAccordion(section) {
+            if (!this.openAccordions[section] && !this.animatingAccordions.has(section)) {
+                this.toggleAccordion(section);
+            }
+        },
+
+        // Close specific accordion
+        closeAccordion(section) {
+            if (this.openAccordions[section] && !this.animatingAccordions.has(section)) {
+                this.toggleAccordion(section);
+            }
+        },
+
+        // Smart accordion opening based on hierarchy level
+        openAccordionForLevel(level) {
+            if (!level || !this.openAccordions.hasOwnProperty(level)) {
+                return;
+            }
+
+            // Define hierarchy levels
+            const hierarchy = ['customer', 'project', 'quote', 'freight'];
+            const levelIndex = hierarchy.indexOf(level);
+
+            // Keep higher-level accordions open, close lower-level ones
+            hierarchy.forEach((hierarchyLevel, index) => {
+                if (index <= levelIndex) {
+                    this.openAccordion(hierarchyLevel);
+                } else {
+                    this.closeAccordion(hierarchyLevel);
+                }
+            });
+
+            this.lastClickedLevel = level;
+        },
+
+        // Keyboard navigation support
+        initKeyboardNavigation() {
+            // Store the handler reference for cleanup
+            this._keyboardHandler = (e) => {
+                // Only handle keyboard events when focused on accordion
+                if (!e.target.closest('.cds--accordion')) return;
+
+                switch(e.key) {
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        const heading = e.target.closest('.cds--accordion__heading');
+                        if (heading) {
+                            const section = this.getSectionFromHeading(heading);
+                            this.toggleAccordion(section);
+                        }
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.navigateAccordion('next');
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.navigateAccordion('prev');
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        this.navigateAccordion('first');
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        this.navigateAccordion('last');
+                        break;
+                }
+            };
+
+            // Add the event listener only once
+            if (!this._keyboardHandlerAdded) {
+                document.addEventListener('keydown', this._keyboardHandler);
+                this._keyboardHandlerAdded = true;
+            }
+        },
+
+        // Cleanup method to prevent memory leaks
+        destroy() {
+            if (this._keyboardHandler) {
+                document.removeEventListener('keydown', this._keyboardHandler);
+                this._keyboardHandler = null;
+                this._keyboardHandlerAdded = false;
+            }
+        },
+
+        // Navigate between accordion items
+        navigateAccordion(direction) {
+            const headings = Array.from(document.querySelectorAll('.cds--accordion__heading'));
+            const currentIndex = headings.findIndex(heading =>
+                heading === document.activeElement || heading.contains(document.activeElement)
+            );
+
+            let nextIndex;
+            switch(direction) {
+                case 'next':
+                    nextIndex = (currentIndex + 1) % headings.length;
+                    break;
+                case 'prev':
+                    nextIndex = currentIndex <= 0 ? headings.length - 1 : currentIndex - 1;
+                    break;
+                case 'first':
+                    nextIndex = 0;
+                    break;
+                case 'last':
+                    nextIndex = headings.length - 1;
+                    break;
+            }
+
+            if (nextIndex !== undefined && headings[nextIndex]) {
+                headings[nextIndex].focus();
+            }
+        },
+
+        // Get section name from heading element
+        getSectionFromHeading(heading) {
+            const title = heading.querySelector('.cds--accordion__title');
+            if (title) {
+                const titleText = title.textContent.toLowerCase();
+                if (titleText.includes('customer')) return 'customer';
+                if (titleText.includes('project')) return 'project';
+                if (titleText.includes('quote')) return 'quote';
+                if (titleText.includes('freight')) return 'freight';
+            }
+            return null;
+        },
+
+        // Smooth scroll to accordion
+        scrollToAccordion(section) {
+            setTimeout(() => {
+                const headings = document.querySelectorAll('.cds--accordion__heading');
+                let targetHeading = null;
+
+                headings.forEach(heading => {
+                    const title = heading.querySelector('.cds--accordion__title');
+                    if (title && title.textContent.trim().toLowerCase().includes(section.toLowerCase())) {
+                        targetHeading = heading;
+                    }
+                });
+
+                if (targetHeading) {
+                    targetHeading.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'nearest'
+                    });
+                }
+            }, 100);
+        },
+
+        // Initialize smooth scroll behavior
+        initSmoothScroll() {
+            // Add smooth scroll to entire document
+            document.documentElement.style.scrollBehavior = 'smooth';
+        },
+
+        // Dispatch custom accordion events
+        dispatchAccordionEvent(eventName, section) {
+            const event = new CustomEvent(eventName, {
+                detail: {
+                    section,
+                    isOpen: this.openAccordions[section],
+                    timestamp: Date.now()
+                }
+            });
+            document.dispatchEvent(event);
+        },
+
+        // Get accordion state for persistence
+        getAccordionState() {
+            return {
+                openAccordions: { ...this.openAccordions },
+                lastClickedLevel: this.lastClickedLevel
+            };
+        },
+
+        // Restore accordion state
+        restoreAccordionState(state) {
+            if (state && state.openAccordions) {
+                Object.assign(this.openAccordions, state.openAccordions);
+                this.lastClickedLevel = state.lastClickedLevel;
+            }
+        },
+
+        // Animation utilities
+        getAnimationDuration(isOpening) {
+            return isOpening ? this.expandDuration : this.collapseDuration;
+        },
+
+        // Accessibility helpers
+        getAriaExpanded(section) {
+            return this.openAccordions[section] ? 'true' : 'false';
+        },
+
+        // Enhanced hover effects
+        onAccordionHover(section, isHovering) {
+            const headings = document.querySelectorAll('.cds--accordion__heading');
+            let targetHeading = null;
+
+            headings.forEach(heading => {
+                const title = heading.querySelector('.cds--accordion__title');
+                if (title && title.textContent.trim().toLowerCase().includes(section.toLowerCase())) {
+                    targetHeading = heading;
+                }
+            });
+
+            if (targetHeading) {
+                if (isHovering) {
+                    targetHeading.style.transform = 'translateX(2px)';
+                } else {
+                    targetHeading.style.transform = 'translateX(0)';
+                }
+            }
         }
     };
 }
@@ -279,23 +548,51 @@ function selectionManager() {
         selectCustomer(customer) {
             this.selectedCustomer = customer;
             this.clearLowerSelections('customer');
+            // Open customer accordion when customer is selected
+            if (window.Alpine && typeof Alpine.store === 'function') {
+                const accordionStore = Alpine.store('accordion');
+                if (accordionStore && typeof accordionStore.openAccordionForLevel === 'function') {
+                    accordionStore.openAccordionForLevel('customer');
+                }
+            }
             return customer;
         },
 
         selectProject(project) {
             this.selectedProject = project;
             this.clearLowerSelections('project');
+            // Open project accordion when project is selected
+            if (window.Alpine && typeof Alpine.store === 'function') {
+                const accordionStore = Alpine.store('accordion');
+                if (accordionStore && typeof accordionStore.openAccordionForLevel === 'function') {
+                    accordionStore.openAccordionForLevel('project');
+                }
+            }
             return project;
         },
 
         selectQuote(quote) {
             this.selectedQuote = quote;
             this.clearLowerSelections('quote');
+            // Open quote accordion when quote is selected
+            if (window.Alpine && typeof Alpine.store === 'function') {
+                const accordionStore = Alpine.store('accordion');
+                if (accordionStore && typeof accordionStore.openAccordionForLevel === 'function') {
+                    accordionStore.openAccordionForLevel('quote');
+                }
+            }
             return quote;
         },
 
         selectFreightRequest(freightRequest) {
             this.selectedFreightRequest = freightRequest;
+            // Open freight accordion when freight request is selected
+            if (window.Alpine && typeof Alpine.store === 'function') {
+                const accordionStore = Alpine.store('accordion');
+                if (accordionStore && typeof accordionStore.openAccordionForLevel === 'function') {
+                    accordionStore.openAccordionForLevel('freight');
+                }
+            }
             return freightRequest;
         },
 
