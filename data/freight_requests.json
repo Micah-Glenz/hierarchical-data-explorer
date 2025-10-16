@@ -74,10 +74,10 @@
   {
     "id": 20004,
     "quote_id": 2002,
-    "vendor_id": 4,
+    "vendor_id": 1,
     "name": "Sensor Control Unit",
     "status": "active",
-    "weight": 50,
+    "weight": 50.0,
     "priority": "low",
     "estimated_delivery": "2024-07-30",
     "is_deleted": false,

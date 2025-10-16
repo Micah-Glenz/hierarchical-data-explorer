@@ -12,7 +12,9 @@
 
             <!-- Customer Details -->
             <div x-show="selectedCustomer" class="cds--accordion__item">
-                <div class="cds--accordion__heading" @click="toggleAccordion('customer')">
+                <div class="cds--accordion__heading"
+                     @click="toggleAccordion('customer')"
+                     :class="{'cds--accordion__heading--active': openAccordions.customer}">
                     <span class="cds--accordion__title">
                         Customer: <span x-text="selectedCustomer?.name"></span>
                     </span>
@@ -27,6 +29,7 @@
                     </svg>
                 </div>
                 <div class="cds--accordion__content"
+                     x-show="openAccordions.customer"
                      :class="{'cds--accordion__content--open': openAccordions.customer}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-1">
@@ -53,7 +56,9 @@
 
             <!-- Project Details -->
             <div x-show="selectedProject" class="cds--accordion__item">
-                <div class="cds--accordion__heading" @click="toggleAccordion('project')">
+                <div class="cds--accordion__heading"
+                     @click="toggleAccordion('project')"
+                     :class="{'cds--accordion__heading--active': openAccordions.project}">
                     <span class="cds--accordion__title">
                         Project: <span x-text="selectedProject?.name"></span>
                     </span>
@@ -68,6 +73,7 @@
                     </svg>
                 </div>
                 <div class="cds--accordion__content"
+                     x-show="openAccordions.project"
                      :class="{'cds--accordion__content--open': openAccordions.project}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-2">
@@ -94,7 +100,9 @@
 
             <!-- Quote Details -->
             <div x-show="selectedQuote" class="cds--accordion__item">
-                <div class="cds--accordion__heading" @click="toggleAccordion('quote')">
+                <div class="cds--accordion__heading"
+                     @click="toggleAccordion('quote')"
+                     :class="{'cds--accordion__heading--active': openAccordions.quote}">
                     <span class="cds--accordion__title">
                         Quote: <span x-text="selectedQuote?.name"></span>
                     </span>
@@ -109,6 +117,7 @@
                     </svg>
                 </div>
                 <div class="cds--accordion__content"
+                     x-show="openAccordions.quote"
                      :class="{'cds--accordion__content--open': openAccordions.quote}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-3">
@@ -135,7 +144,9 @@
 
             <!-- Freight Request Details -->
             <div x-show="selectedFreightRequest" class="cds--accordion__item">
-                <div class="cds--accordion__heading" @click="toggleAccordion('freight')">
+                <div class="cds--accordion__heading"
+                     @click="toggleAccordion('freight')"
+                     :class="{'cds--accordion__heading--active': openAccordions.freight}">
                     <span class="cds--accordion__title">
                         Freight Request: <span x-text="selectedFreightRequest?.name"></span>
                     </span>
@@ -150,6 +161,7 @@
                     </svg>
                 </div>
                 <div class="cds--accordion__content"
+                     x-show="openAccordions.freight"
                      :class="{'cds--accordion__content--open': openAccordions.freight}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-4">

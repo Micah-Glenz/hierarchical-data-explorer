@@ -9,7 +9,6 @@ from typing import List, Dict, Any, Optional
 
 from ..core.database import get_database
 from ..core.config import get_settings
-from .models import VendorResponse
 
 
 def get_database_manager():
