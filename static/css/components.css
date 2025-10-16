@@ -357,15 +357,15 @@
 }
 
 .accordion-content {
-    padding: 0;
-    max-height: 0;
+    /* Remove conflicting height constraints to allow modern accordion styles to work */
+    /* The cds--accordion__content classes will handle all height animations */
     overflow: hidden;
-    transition: max-height 0.15s ease-in-out, padding 0.15s ease-in-out;
 }
 
 .accordion-content[aria-hidden="false"] {
+    /* Remove conflicting max-height to allow modern accordion styles to work */
+    /* The cds--accordion__content--open class will handle the open state */
     padding: var(--spacing-lg);
-    max-height: 500px;
 }
 
 /* Form Controls */
@@ -616,31 +616,44 @@ select {
     font-size: var(--font-size-lg);
 }
 
-/* IBM Carbon Accordion Styles */
+/* Compact Accordion Styles - Minimal Design */
 .cds--accordion {
-    border: 1px solid #e0e0e0;
-    border-radius: 0px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
     background: #ffffff;
-    margin-bottom: 1px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
 }
 
 .cds--accordion__item {
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--color-border);
+    position: relative;
+    background: #ffffff;
+    transition: all var(--transition-fast);
 }
 
 .cds--accordion__item:last-child {
     border-bottom: none;
 }
 
+.cds--accordion__item:hover {
+    background: var(--cds-color-background-hover);
+}
+
+/* Compact Heading Styles with Level Differentiation */
 .cds--accordion__heading {
-    padding: var(--spacing-xl) var(--spacing-2xl);
+    padding: var(--spacing-sm) var(--spacing-md);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #fafafa;
-    border-bottom: 1px solid #e0e0e0;
-    transition: var(--transition-fast);
+    background: transparent;
+    border: none;
+    transition: all var(--transition-fast);
+    min-height: 32px;
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    overflow: hidden;
 }
 
 .cds--accordion__heading:hover {
@@ -649,109 +662,180 @@ select {
 
 .cds--accordion__heading--active {
     background: var(--cds-color-background-selected);
-    border-bottom-color: var(--cds-color-border-interactive);
+    border-left: 3px solid var(--color-primary);
 }
 
+/* Compact Title Styles with Better Typography */
 .cds--accordion__title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--cds-color-text-primary);
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-sm);
     font-family: var(--font-family-primary);
+    letter-spacing: normal;
 }
 
+/* Compact Arrow with Enhanced Animation */
 .cds--accordion__arrow {
     width: 16px;
     height: 16px;
-    transition: transform var(--transition-fast);
+    transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--cds-color-text-secondary);
+    flex-shrink: 0;
+    margin-left: var(--spacing-sm);
+    opacity: 0.7;
+}
+
+.cds--accordion__heading:hover .cds--accordion__arrow {
+    color: var(--color-primary);
+    opacity: 1;
+    transform: scale(1.05);
 }
 
 .cds--accordion__heading--active .cds--accordion__arrow {
-    transform: rotate(90deg);
-    color: var(--cds-color-border-interactive);
+    transform: rotate(180deg) scale(1.05);
+    color: var(--color-primary);
 }
 
+/* Compact Content Animation */
 .cds--accordion__content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height var(--transition-normal) ease-out;
+    transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
     background: #ffffff;
+    opacity: 0;
 }
 
 .cds--accordion__content--open {
-    max-height: 500px;
-    transition: max-height var(--transition-slow) ease-in;
+    max-height: 100vh;
+    overflow-y: auto;
+    transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+    padding: var(--spacing-md) var(--spacing-lg);
+    opacity: 1;
+    border-top: 1px solid var(--color-border);
 }
 
 .accordion-content {
-    padding: var(--spacing-xl) var(--spacing-2xl);
+    /* Remove padding to prevent conflict with cds--accordion__content--open */
+    /* Let the outer accordion container handle all padding */
 }
 
 .hierarchy-summary {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     color: var(--cds-color-text-secondary);
-    margin-left: var(--spacing-lg);
+    margin-left: var(--spacing-md);
     font-family: var(--font-family-primary);
 }
 
 .hierarchy-level-label {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-xs);
     color: #8c8c8c;
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wider);
-    margin-right: var(--spacing-lg);
+    letter-spacing: 0.05em;
+    margin-right: var(--spacing-md);
     white-space: nowrap;
     font-family: var(--font-family-primary);
 }
 
+/* Compact Hierarchy Styles - Minimal Design */
 .hierarchy-item {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+}
+
+.hierarchy-item:hover {
+    background: var(--cds-color-background-hover);
 }
 
 .hierarchy-item:last-child {
     margin-bottom: 0;
 }
 
+/* Compact Field Rows with Enhanced Visual Hierarchy */
 .field-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-sm);
     font-family: var(--font-family-primary);
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+    transition: all var(--transition-fast);
+}
+
+.field-row:last-child {
+    border-bottom: none;
+}
+
+.field-row:hover {
+    background: var(--cds-color-background-hover);
 }
 
 .field-label {
     color: var(--cds-color-text-secondary);
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.field-label::before {
+    content: '•';
+    color: var(--color-primary);
+    font-weight: bold;
+    font-size: var(--font-size-xs);
 }
 
 .field-value {
     color: var(--cds-color-text-primary);
     font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
 }
 
+/* Minimal Hierarchy Levels */
 .hierarchy-level-1 {
     margin-left: 0px;
+    border-left: 3px solid var(--color-primary);
 }
 
 .hierarchy-level-2 {
-    margin-left: 16px;
+    margin-left: 0px;
+    border-left: 3px solid var(--color-success);
 }
 
 .hierarchy-level-3 {
-    margin-left: 32px;
+    margin-left: 0px;
+    border-left: 3px solid var(--color-warning);
 }
 
 .hierarchy-level-4 {
-    margin-left: 48px;
+    margin-left: 0px;
+    border-left: 3px solid var(--color-error);
 }
+
+/* Compact level-specific typography scaling */
+.hierarchy-level-1 .field-label { font-size: var(--font-size-xs); }
+.hierarchy-level-2 .field-label { font-size: var(--font-size-xs); }
+.hierarchy-level-3 .field-label { font-size: var(--font-size-xs); }
+.hierarchy-level-4 .field-label { font-size: var(--font-size-xs); }
+
+.hierarchy-level-1 .field-value { font-size: var(--font-size-sm); }
+.hierarchy-level-2 .field-value { font-size: var(--font-size-sm); }
+.hierarchy-level-3 .field-value { font-size: var(--font-size-sm); }
+.hierarchy-level-4 .field-value { font-size: var(--font-size-sm); }
 
 /* Compact scrollbar */
 .column-content::-webkit-scrollbar {
@@ -771,29 +855,79 @@ select {
     background: #525252;
 }
 
-/* Action Buttons for Details Pane */
+/* Modern Action Buttons for Details Pane */
 .action-button {
-    background: var(--cds-blue-60);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-xs);
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    color: var(--cds-color-text-primary);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all var(--transition-normal);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left var(--transition-normal);
+}
+
+.action-button:hover::before {
+    left: 100%;
 }
 
 .action-button:hover {
-    background: var(--cds-blue-70);
+    background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .action-button.delete {
-    background: var(--cds-red-60);
+    background: linear-gradient(145deg, #ffffff, #fef2f2);
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.action-button.delete::before {
+    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
 }
 
 .action-button.delete:hover {
-    background: var(--cds-red-70);
+    background: linear-gradient(145deg, #fef2f2, #fee2e2);
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+/* Enhanced Accordion Actions Container */
+.accordion-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-left: auto;
+    margin-right: var(--spacing-lg);
+    padding: var(--spacing-xs);
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: var(--border-radius-md);
+    backdrop-filter: blur(8px);
 }
 
 /* Modal Breadcrumb Styles */
