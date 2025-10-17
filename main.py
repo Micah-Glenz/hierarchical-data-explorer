@@ -35,7 +35,8 @@ from src.api.routes import (
     projects,
     quotes,
     freight_requests,
-    vendors
+    vendors,
+    vendor_quotes
 )
 
 # Initialize configuration
@@ -65,6 +66,7 @@ app.include_router(projects.router)
 app.include_router(quotes.router)
 app.include_router(freight_requests.router)
 app.include_router(vendors.router)
+app.include_router(vendor_quotes.router)
 
 
 @app.get("/")
@@ -159,7 +161,8 @@ async def startup_event():
         "projects.json",
         "quotes.json",
         "freight_requests.json",
-        "vendors.json"
+        "vendors.json",
+        "vendor_quotes.json"
     ]
 
     for file_name in required_files:

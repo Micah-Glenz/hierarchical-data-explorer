@@ -9,6 +9,15 @@ from typing import List, Dict, Any, Optional
 
 from ..core.database import get_database
 from ..core.config import get_settings
+from ..core.constants import (
+    get_valid_project_types,
+    get_valid_project_statuses,
+    get_valid_quote_statuses,
+    get_valid_vendor_quote_statuses,
+    get_valid_customer_statuses,
+    get_valid_freight_priorities,
+    VALIDATION_ERROR_MESSAGES
+)
 
 
 def get_database_manager():
@@ -170,23 +179,6 @@ def calculate_item_counts(entity_type: str, parent_id: Optional[int] = None) -> 
 
     return counts
 
-def get_valid_industries() -> List[str]:
-    """
-    Get list of valid industries.
-
-    Returns:
-        List of valid industry names
-    """
-    return [
-        "Technology",
-        "Manufacturing",
-        "Retail",
-        "Healthcare",
-        "Logistics",
-        "Finance",
-        "Construction",
-        "Energy"
-    ]
 
 
 def get_valid_statuses() -> List[str]:
@@ -196,7 +188,10 @@ def get_valid_statuses() -> List[str]:
     Returns:
         List of valid status values
     """
-    return ["active", "planning", "in_progress", "on_hold", "completed"]
+    # Combine all status types for backward compatibility
+    return (get_valid_customer_statuses() +
+            get_valid_project_statuses() +
+            get_valid_quote_statuses())
 
 
 def get_valid_priorities() -> List[str]:
@@ -206,7 +201,7 @@ def get_valid_priorities() -> List[str]:
     Returns:
         List of valid priority values
     """
-    return ["low", "medium", "high", "critical"]
+    return get_valid_freight_priorities()
 
 
 def validate_choice(value: str, choices: List[str], field_name: str) -> str:
@@ -357,3 +352,43 @@ class ValidationHelper:
         if value not in choices:
             raise ValueError(f"{field_name} must be one of: {', '.join(choices)}")
         return value
+
+
+def validate_tracking_id(tracking_id: str) -> str:
+    """
+    Validate a tracking ID format.
+
+    Args:
+        tracking_id: Tracking ID to validate
+
+    Returns:
+        Validated tracking ID
+
+    Raises:
+        ValueError: If validation fails
+    """
+    from ..core.constants import validate_tracking_id as validate_tracking_id_format
+
+    if not validate_tracking_id_format(tracking_id):
+        raise ValueError("Tracking ID must be in VQYY-ID format (e.g., VQ24-1)")
+    return tracking_id
+
+
+def validate_positive_amount(amount: float, field_name: str) -> float:
+    """
+    Validate a positive amount field.
+
+    Args:
+        amount: Amount to validate
+        field_name: Name of the field for error messages
+
+    Returns:
+        Validated amount
+
+    Raises:
+        ValueError: If validation fails
+    """
+    if amount is not None and amount <= 0:
+        message = f"{field_name} must be greater than 0"
+        raise ValueError(message)
+    return amount

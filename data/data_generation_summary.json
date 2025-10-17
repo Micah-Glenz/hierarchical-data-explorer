@@ -1,0 +1,97 @@
+{
+  "generation_timestamp": "2025-10-16T16:30:15.165871",
+  "data_summary": {
+    "customers": {
+      "count": 50,
+      "fields": [
+        "id",
+        "name",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "sales_rep_name",
+        "sales_rep_email",
+        "industry",
+        "status",
+        "created_date",
+        "created_at",
+        "updated_at",
+        "is_deleted",
+        "deleted_at"
+      ]
+    },
+    "projects": {
+      "count": 129,
+      "fields": [
+        "id",
+        "customer_id",
+        "name",
+        "project_type",
+        "status",
+        "budget",
+        "start_date",
+        "target_delivery_date",
+        "created_at",
+        "updated_at",
+        "is_deleted",
+        "deleted_at"
+      ]
+    },
+    "quotes": {
+      "count": 378,
+      "fields": [
+        "id",
+        "project_id",
+        "name",
+        "description",
+        "amount",
+        "status",
+        "valid_until",
+        "created_at",
+        "updated_at",
+        "is_deleted",
+        "deleted_at"
+      ]
+    },
+    "vendors": {
+      "count": 25,
+      "fields": [
+        "id",
+        "name",
+        "contact_name",
+        "email",
+        "specialty",
+        "rating",
+        "created_at",
+        "updated_at",
+        "is_deleted",
+        "deleted_at"
+      ]
+    },
+    "vendor_quotes": {
+      "count": 739,
+      "fields": [
+        "id",
+        "quote_id",
+        "vendor_id",
+        "tracking_id",
+        "items_text",
+        "delivery_requirements",
+        "is_rush",
+        "status",
+        "quoted_amount",
+        "created_at",
+        "updated_at",
+        "is_deleted",
+        "deleted_at"
+      ]
+    }
+  },
+  "relationships": {
+    "customer_projects": "1:many (2.6 projects/customer)",
+    "project_quotes": "1:many (2.9 quotes/project)",
+    "quote_vendor_quotes": "1:many (2.0 vendor_quotes/quote)",
+    "vendor_vendor_quotes": "1:many (29.6 vendor_quotes/vendor)"
+  }
+}

@@ -1,13 +1,13 @@
 <!-- Details pane with accordion for selected items -->
 <div class="column details-pane">
     <!-- Empty State -->
-    <div x-show="!selectedCustomer && !selectedProject && !selectedQuote && !selectedFreightRequest"
+    <div x-show="!selectedCustomer && !selectedProject && !selectedQuote && !selectedVendorQuote"
          class="details-empty-state">
         Select an item to view details
     </div>
 
     <!-- Details Accordion -->
-    <div x-show="selectedCustomer || selectedProject || selectedQuote || selectedFreightRequest">
+    <div x-show="selectedCustomer || selectedProject || selectedQuote || selectedVendorQuote">
         <div class="cds--accordion">
 
             <!-- Customer Details -->
@@ -16,7 +16,7 @@
                      @click="toggleAccordion('customer')"
                      :class="{'cds--accordion__heading--active': openAccordions.customer}">
                     <span class="cds--accordion__title">
-                        Customer: <span x-text="selectedCustomer?.name"></span>
+                        <span x-text="selectedCustomer?.name"></span>
                     </span>
                     <div class="accordion-actions">
                         <button @click.stop="openEditModal('customer', selectedCustomer)"
@@ -33,10 +33,6 @@
                      :class="{'cds--accordion__content--open': openAccordions.customer}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-1">
-                            <div class="field-row">
-                                <span class="field-label">Industry:</span>
-                                <span class="field-value" x-text="selectedCustomer?.industry"></span>
-                            </div>
                             <div class="field-row">
                                 <span class="field-label">Status:</span>
                                 <span class="field-value" x-text="selectedCustomer?.status"></span>
@@ -60,7 +56,7 @@
                      @click="toggleAccordion('project')"
                      :class="{'cds--accordion__heading--active': openAccordions.project}">
                     <span class="cds--accordion__title">
-                        Project: <span x-text="selectedProject?.name"></span>
+                        <span x-text="selectedProject?.name"></span>
                     </span>
                     <div class="accordion-actions">
                         <button @click.stop="openEditModal('project', selectedProject)"
@@ -104,7 +100,7 @@
                      @click="toggleAccordion('quote')"
                      :class="{'cds--accordion__heading--active': openAccordions.quote}">
                     <span class="cds--accordion__title">
-                        Quote: <span x-text="selectedQuote?.name"></span>
+                        <span x-text="selectedQuote?.name"></span>
                     </span>
                     <div class="accordion-actions">
                         <button @click.stop="openEditModal('quote', selectedQuote)"
@@ -135,25 +131,25 @@
                             </div>
                             <div class="field-row">
                                 <span class="field-label">Requests:</span>
-                                <span class="field-value" x-text="selectedQuote?.freight_request_count"></span>
+                                <span class="field-value" x-text="selectedQuote?.vendor_quote_count"></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Freight Request Details -->
-            <div x-show="selectedFreightRequest" class="cds--accordion__item">
+            <!-- Vendor Quote Details -->
+            <div x-show="selectedVendorQuote" class="cds--accordion__item">
                 <div class="cds--accordion__heading"
-                     @click="toggleAccordion('freight')"
-                     :class="{'cds--accordion__heading--active': openAccordions.freight}">
+                     @click="toggleAccordion('vendor_quote')"
+                     :class="{'cds--accordion__heading--active': openAccordions.vendor_quote}">
                     <span class="cds--accordion__title">
-                        Freight Request: <span x-text="selectedFreightRequest?.name"></span>
+                        <span x-text="selectedVendorQuote?.tracking_id || `Vendor Quote ${selectedVendorQuote?.id}`"></span>
                     </span>
                     <div class="accordion-actions">
-                        <button @click.stop="openEditModal('freight-request', selectedFreightRequest)"
+                        <button @click.stop="openEditModal('vendor-quote', selectedVendorQuote)"
                                 class="action-button">Edit</button>
-                        <button @click.stop="confirmDelete('freight-request', selectedFreightRequest?.id)"
+                        <button @click.stop="confirmDelete('vendor-quote', selectedVendorQuote?.id)"
                                 class="action-button delete">Delete</button>
                     </div>
                     <svg class="cds--accordion__arrow" fill="currentColor" viewBox="0 0 16 16">
@@ -161,31 +157,31 @@
                     </svg>
                 </div>
                 <div class="cds--accordion__content"
-                     x-show="openAccordions.freight"
-                     :class="{'cds--accordion__content--open': openAccordions.freight}">
+                     x-show="openAccordions.vendor_quote"
+                     :class="{'cds--accordion__content--open': openAccordions.vendor_quote}">
                     <div class="accordion-content">
                         <div class="hierarchy-item hierarchy-level-4">
                             <div class="field-row">
                                 <span class="field-label">Vendor:</span>
-                                <span class="field-value" x-text="selectedFreightRequest?.vendor_name"></span>
+                                <span class="field-value" x-text="selectedVendorQuote?.vendor_name"></span>
                             </div>
                             <div class="field-row">
-                                <span class="field-label">Weight:</span>
-                                <span class="field-value" x-text="selectedFreightRequest?.weight + ' kg'"></span>
+                                <span class="field-label">Items:</span>
+                                <span class="field-value" x-text="selectedVendorQuote?.items_text"></span>
                             </div>
                             <div class="field-row">
-                                <span class="field-label">Priority:</span>
+                                <span class="field-label">Rush:</span>
                                 <span class="field-value"
-                                      :class="`priority-${selectedFreightRequest?.priority}`"
-                                      x-text="selectedFreightRequest?.priority"></span>
+                                      :class="selectedVendorQuote?.is_rush ? 'priority-high' : 'priority-medium'"
+                                      x-text="selectedVendorQuote?.is_rush ? 'Yes' : 'No'"></span>
                             </div>
                             <div class="field-row">
                                 <span class="field-label">Status:</span>
-                                <span class="field-value" x-text="selectedFreightRequest?.status"></span>
+                                <span class="field-value" x-text="selectedVendorQuote?.status"></span>
                             </div>
                             <div class="field-row">
-                                <span class="field-label">Est. Delivery:</span>
-                                <span class="field-value" x-text="selectedFreightRequest?.estimated_delivery || 'N/A'"></span>
+                                <span class="field-label">Quoted Amount:</span>
+                                <span class="field-value" x-text="formatCurrency(selectedVendorQuote?.quoted_amount)"></span>
                             </div>
                         </div>
                     </div>

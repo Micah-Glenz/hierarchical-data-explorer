@@ -808,22 +808,18 @@ select {
 /* Minimal Hierarchy Levels */
 .hierarchy-level-1 {
     margin-left: 0px;
-    border-left: 3px solid var(--color-primary);
 }
 
 .hierarchy-level-2 {
     margin-left: 0px;
-    border-left: 3px solid var(--color-success);
 }
 
 .hierarchy-level-3 {
     margin-left: 0px;
-    border-left: 3px solid var(--color-warning);
 }
 
 .hierarchy-level-4 {
     margin-left: 0px;
-    border-left: 3px solid var(--color-error);
 }
 
 /* Compact level-specific typography scaling */

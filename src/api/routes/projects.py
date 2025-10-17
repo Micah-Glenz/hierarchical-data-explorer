@@ -9,7 +9,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 
 from ..models import (
-    ProjectCreate, ProjectUpdate, ProjectResponse,
+    ProjectCreate, ProjectUpdate, ProjectResponseEnhanced,
     CreateResponse, UpdateResponse, DeleteResponse
 )
 from ..dependencies import (
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{customer_id}", response_model=List[ProjectResponse])
+@router.get("/{customer_id}", response_model=List[ProjectResponseEnhanced])
 async def get_projects(customer_id: int, db=Depends(get_database_manager)):
     """Get all projects for a specific customer."""
     try:

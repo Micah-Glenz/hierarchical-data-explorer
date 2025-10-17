@@ -92,7 +92,7 @@ function modalComponent() {
                 customer: this.isEdit ? 'Edit Customer' : 'New Customer',
                 project: this.isEdit ? 'Edit Project' : 'New Project',
                 quote: this.isEdit ? 'Edit Quote' : 'New Quote',
-                'freight-request': this.isEdit ? 'Edit Freight Request' : 'New Freight Request'
+                'vendor-quote': this.isEdit ? 'Edit Vendor Quote' : 'New Vendor Quote'
             };
             return titles[this.modalType] || (this.isEdit ? 'Edit Item' : 'New Item');
         },
@@ -103,7 +103,6 @@ function modalComponent() {
             const defaultData = {
                 customer: {
                     name: '',
-                    industry: '',
                     status: 'active',
                     created_date: today
                 },
@@ -121,13 +120,17 @@ function modalComponent() {
                     valid_until: '',
                     project_id: null
                 },
-                'freight-request': {
+                'vendor-quote': {
                     name: '',
-                    vendor_id: '',
+                    vendor_id: null,
                     status: 'active',
-                    weight: 0,
+                    quoted_amount: 0,
                     priority: 'medium',
-                    estimated_delivery: '',
+                    valid_until: '',
+                    tracking_id: '',
+                    items_text: '',
+                    delivery_requirements: '',
+                    is_rush: false,
                     quote_id: null
                 }
             };
@@ -137,10 +140,10 @@ function modalComponent() {
 
         populateModalData(type, item) {
             const fieldMappings = {
-                customer: ['name', 'industry', 'status', 'created_date'],
+                customer: ['name', 'status', 'created_date'],
                 project: ['name', 'budget', 'status', 'start_date', 'customer_id'],
                 quote: ['name', 'amount', 'status', 'valid_until', 'project_id'],
-                'freight-request': ['name', 'vendor_id', 'status', 'weight', 'priority', 'estimated_delivery', 'quote_id']
+                'vendor-quote': ['name', 'vendor_id', 'status', 'quoted_amount', 'priority', 'valid_until', 'tracking_id', 'items_text', 'delivery_requirements', 'is_rush', 'quote_id']
             };
 
             const fields = fieldMappings[type] || [];
@@ -158,7 +161,6 @@ function modalComponent() {
             switch(this.modalType) {
                 case 'customer':
                     if (!data.name?.trim()) errors.name = 'Name is required';
-                    if (!data.industry) errors.industry = 'Industry is required';
                     if (!data.created_date) errors.created_date = 'Created date is required';
                     break;
                 case 'project':
@@ -170,10 +172,12 @@ function modalComponent() {
                     if (!data.name?.trim()) errors.name = 'Name is required';
                     if (!data.amount || data.amount <= 0) errors.amount = 'Amount must be greater than 0';
                     break;
-                case 'freight-request':
+                case 'vendor-quote':
                     if (!data.name?.trim()) errors.name = 'Name is required';
                     if (!data.vendor_id) errors.vendor_id = 'Vendor is required';
-                    if (!data.weight || data.weight <= 0) errors.weight = 'Weight must be greater than 0';
+                    if (!data.tracking_id?.trim()) errors.tracking_id = 'Tracking ID is required';
+                    if (!data.items_text?.trim()) errors.items_text = 'Items description is required';
+                    if (!data.quoted_amount || data.quoted_amount <= 0) errors.quoted_amount = 'Quoted amount must be greater than 0';
                     break;
             }
 
@@ -193,7 +197,7 @@ function accordionComponent() {
             customer: false,
             project: false,
             quote: false,
-            freight: false
+            vendor_quote: false
         },
         lastClickedLevel: null,
         animatingAccordions: new Set(),
@@ -288,7 +292,7 @@ function accordionComponent() {
             }
 
             // Define hierarchy levels
-            const hierarchy = ['customer', 'project', 'quote', 'freight'];
+            const hierarchy = ['customer', 'project', 'quote', 'vendor_quote'];
             const levelIndex = hierarchy.indexOf(level);
 
             // Keep higher-level accordions open, close lower-level ones
@@ -391,7 +395,7 @@ function accordionComponent() {
                 if (titleText.includes('customer')) return 'customer';
                 if (titleText.includes('project')) return 'project';
                 if (titleText.includes('quote')) return 'quote';
-                if (titleText.includes('freight')) return 'freight';
+                if (titleText.includes('vendor') || titleText.includes('freight')) return 'vendor_quote';
             }
             return null;
         },
@@ -495,7 +499,7 @@ function loadingManager() {
             customers: false,
             projects: false,
             quotes: false,
-            freightRequests: false,
+            vendorQuotes: false,
             vendors: false
         },
 
@@ -503,7 +507,7 @@ function loadingManager() {
             customers: null,
             projects: null,
             quotes: null,
-            freightRequests: null,
+            vendorQuotes: null,
             vendors: null
         },
 
@@ -543,7 +547,7 @@ function selectionManager() {
         selectedCustomer: null,
         selectedProject: null,
         selectedQuote: null,
-        selectedFreightRequest: null,
+        selectedVendorQuote: null,
 
         selectCustomer(customer) {
             this.selectedCustomer = customer;
@@ -584,16 +588,16 @@ function selectionManager() {
             return quote;
         },
 
-        selectFreightRequest(freightRequest) {
-            this.selectedFreightRequest = freightRequest;
-            // Open freight accordion when freight request is selected
+        selectVendorQuote(vendorQuote) {
+            this.selectedVendorQuote = vendorQuote;
+            // Open vendor accordion when vendor quote is selected
             if (window.Alpine && typeof Alpine.store === 'function') {
                 const accordionStore = Alpine.store('accordion');
                 if (accordionStore && typeof accordionStore.openAccordionForLevel === 'function') {
-                    accordionStore.openAccordionForLevel('freight');
+                    accordionStore.openAccordionForLevel('vendor_quote');
                 }
             }
-            return freightRequest;
+            return vendorQuote;
         },
 
         clearLowerSelections(level) {
@@ -601,14 +605,14 @@ function selectionManager() {
                 case 'customer':
                     this.selectedProject = null;
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     break;
                 case 'project':
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     break;
                 case 'quote':
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     break;
             }
         },
@@ -617,7 +621,7 @@ function selectionManager() {
             this.selectedCustomer = null;
             this.selectedProject = null;
             this.selectedQuote = null;
-            this.selectedFreightRequest = null;
+            this.selectedVendorQuote = null;
         },
 
         hasSelection(level) {
@@ -625,7 +629,7 @@ function selectionManager() {
                 case 'customer': return !!this.selectedCustomer;
                 case 'project': return !!this.selectedProject;
                 case 'quote': return !!this.selectedQuote;
-                case 'freight': return !!this.selectedFreightRequest;
+                case 'vendor_quote': return !!this.selectedVendorQuote;
                 default: return false;
             }
         }

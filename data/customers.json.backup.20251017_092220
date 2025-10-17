@@ -798,14 +798,5 @@
     "updated_at": "2023-06-04T08:48:36",
     "is_deleted": false,
     "deleted_at": null
-  },
-  {
-    "id": 51,
-    "name": "Updated Test Customer",
-    "status": "inactive",
-    "created_date": "2025-10-17",
-    "project_count": 0,
-    "is_deleted": true,
-    "deleted_at": "2025-10-17T09:22:44.477177"
   }
 ]

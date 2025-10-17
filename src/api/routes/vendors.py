@@ -7,7 +7,7 @@ This module contains all API endpoints related to vendor operations.
 import json
 from fastapi import APIRouter, HTTPException, Depends
 
-from ..models import VendorResponse
+from ..models import VendorResponseEnhanced
 from ..dependencies import get_database_manager, format_error_response
 from ...core.exceptions import DatabaseOperationError
 
@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[VendorResponse])
+@router.get("/", response_model=list[VendorResponseEnhanced])
 async def get_vendors(db=Depends(get_database_manager)):
     """Get all vendors."""
     try:

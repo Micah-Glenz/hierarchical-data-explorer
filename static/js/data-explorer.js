@@ -14,28 +14,28 @@ function dataExplorer() {
         customers: [],
         projects: [],
         quotes: [],
-        freightRequests: [],
+        vendorQuotes: [],
         vendors: [],
 
         // Selected items
         selectedCustomer: null,
         selectedProject: null,
         selectedQuote: null,
-        selectedFreightRequest: null,
+        selectedVendorQuote: null,
 
         // Loading and error states
         loading: {
             customers: false,
             projects: false,
             quotes: false,
-            freightRequests: false
+            vendorQuotes: false
         },
 
         error: {
             customers: null,
             projects: null,
             quotes: null,
-            freightRequests: null
+            vendorQuotes: null
         },
 
         // UI state
@@ -43,7 +43,7 @@ function dataExplorer() {
             customer: false,
             project: false,
             quote: false,
-            freight: false
+            vendor_quote: false
         },
         lastClickedLevel: null,
 
@@ -79,8 +79,8 @@ function dataExplorer() {
             await this.loadData('quotes', `/api/quotes/${projectId}`);
         },
 
-        async loadFreightRequests(quoteId) {
-            await this.loadData('freightRequests', `/api/freight-requests/${quoteId}`);
+        async loadVendorQuotes(quoteId) {
+            await this.loadData('vendorQuotes', `/api/vendor-quotes/by-quote/${quoteId}`);
         },
 
         async loadVendors() {
@@ -144,17 +144,17 @@ function dataExplorer() {
             this.clearLowerSelections('quote');
 
             if (quote) {
-                await this.loadFreightRequests(quote.id);
+                await this.loadVendorQuotes(quote.id);
                 // Atomic accordion state update - open only quote accordion
                 this.openOnlyAccordion('quote');
             }
         },
 
-        selectFreightRequest(freightRequest) {
-            this.selectedFreightRequest = freightRequest;
-            if (freightRequest) {
-                // Atomic accordion state update - open only freight accordion
-                this.openOnlyAccordion('freight');
+        selectVendorQuote(vendorQuote) {
+            this.selectedVendorQuote = vendorQuote;
+            if (vendorQuote) {
+                // Atomic accordion state update - open only vendor_quote accordion
+                this.openOnlyAccordion('vendor_quote');
             }
         },
 
@@ -166,20 +166,20 @@ function dataExplorer() {
                 case 'customer':
                     this.selectedProject = null;
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     this.projects = [];
                     this.quotes = [];
-                    this.freightRequests = [];
+                    this.vendorQuotes = [];
                     break;
                 case 'project':
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     this.quotes = [];
-                    this.freightRequests = [];
+                    this.vendorQuotes = [];
                     break;
                 case 'quote':
-                    this.selectedFreightRequest = null;
-                    this.freightRequests = [];
+                    this.selectedVendorQuote = null;
+                    this.vendorQuotes = [];
                     break;
             }
         },
@@ -191,10 +191,10 @@ function dataExplorer() {
             this.selectedCustomer = null;
             this.selectedProject = null;
             this.selectedQuote = null;
-            this.selectedFreightRequest = null;
+            this.selectedVendorQuote = null;
             this.projects = [];
             this.quotes = [];
-            this.freightRequests = [];
+            this.vendorQuotes = [];
         },
 
         /**
@@ -234,7 +234,7 @@ function dataExplorer() {
                 customer: false,
                 project: false,
                 quote: false,
-                freight: false
+                vendor_quote: false
             };
             newState[level] = true;
 
@@ -300,7 +300,7 @@ function dataExplorer() {
                 customer: this.isEdit ? 'Edit Customer' : 'New Customer',
                 project: this.isEdit ? 'Edit Project' : 'New Project',
                 quote: this.isEdit ? 'Edit Quote' : 'New Quote',
-                'freight-request': this.isEdit ? 'Edit Freight Request' : 'New Freight Request'
+                'vendor-quote': this.isEdit ? 'Edit Vendor Quote' : 'New Vendor Quote'
             };
             return titles[this.modalType] || (this.isEdit ? 'Edit Item' : 'New Item');
         },
@@ -311,7 +311,6 @@ function dataExplorer() {
             const defaultData = {
                 customer: {
                     name: '',
-                    industry: '',
                     status: 'active',
                     created_date: today
                 },
@@ -329,13 +328,17 @@ function dataExplorer() {
                     valid_until: '',
                     project_id: this.selectedProject?.id
                 },
-                'freight-request': {
+                'vendor-quote': {
                     name: '',
                     vendor_id: null,
                     status: 'active',
-                    weight: 1,
+                    quoted_amount: 0,
                     priority: 'medium',
-                    estimated_delivery: '',
+                    valid_until: '',
+                    tracking_id: '',
+                    items_text: '',
+                    delivery_requirements: '',
+                    is_rush: false,
                     quote_id: this.selectedQuote?.id
                 }
             };
@@ -345,10 +348,10 @@ function dataExplorer() {
 
         populateModalData(type, item) {
             const fieldMappings = {
-                customer: ['name', 'industry', 'status', 'created_date'],
+                customer: ['name', 'status', 'created_date'],
                 project: ['name', 'budget', 'status', 'start_date', 'customer_id'],
                 quote: ['name', 'amount', 'status', 'valid_until', 'project_id'],
-                'freight-request': ['name', 'vendor_id', 'status', 'weight', 'priority', 'estimated_delivery', 'quote_id']
+                'vendor-quote': ['name', 'vendor_id', 'status', 'quoted_amount', 'priority', 'valid_until', 'tracking_id', 'items_text', 'delivery_requirements', 'is_rush', 'quote_id']
             };
 
             const fields = fieldMappings[type] || [];
@@ -427,12 +430,7 @@ function dataExplorer() {
                 data.vendor_id = parseInt(data.vendor_id, 10);
             }
 
-            if (data.weight === '' || data.weight === null || data.weight === undefined) {
-                data.weight = 1; // Default to 1kg if not provided
-            } else {
-                data.weight = parseFloat(data.weight);
-            }
-
+            
             if (data.customer_id === '' || data.customer_id === null || data.customer_id === undefined) {
                 data.customer_id = null;
             } else {
@@ -451,11 +449,7 @@ function dataExplorer() {
                 data.quote_id = parseInt(data.quote_id, 10);
             }
 
-            // Handle optional date fields - convert empty strings to null
-            if (data.estimated_delivery === '' || data.estimated_delivery === null || data.estimated_delivery === undefined) {
-                data.estimated_delivery = null;
-            }
-
+            
             if (data.valid_until === '' || data.valid_until === null || data.valid_until === undefined) {
                 data.valid_until = null;
             }
@@ -470,6 +464,11 @@ function dataExplorer() {
                 data.amount = parseFloat(data.amount);
             }
 
+            // Handle quoted_amount for vendor quotes
+            if (data.quoted_amount !== undefined) {
+                data.quoted_amount = parseFloat(data.quoted_amount);
+            }
+
             return data;
         },
 
@@ -480,7 +479,6 @@ function dataExplorer() {
             switch(this.modalType) {
                 case 'customer':
                     if (!data.name?.trim()) errors.name = 'Name is required';
-                    if (!data.industry) errors.industry = 'Industry is required';
                     if (!data.created_date) errors.created_date = 'Created date is required';
                     break;
                 case 'project':
@@ -492,10 +490,12 @@ function dataExplorer() {
                     if (!data.name?.trim()) errors.name = 'Name is required';
                     if (!data.amount || data.amount <= 0) errors.amount = 'Amount must be greater than 0';
                     break;
-                case 'freight-request':
+                case 'vendor-quote':
                     if (!data.name?.trim()) errors.name = 'Name is required';
                     if (!data.vendor_id) errors.vendor_id = 'Vendor is required';
-                    if (!data.weight || data.weight <= 0) errors.weight = 'Weight must be greater than 0';
+                    if (!data.tracking_id?.trim()) errors.tracking_id = 'Tracking ID is required';
+                    if (!data.items_text?.trim()) errors.items_text = 'Items description is required';
+                    if (!data.quoted_amount || data.quoted_amount <= 0) errors.quoted_amount = 'Quoted amount must be greater than 0';
                     break;
             }
 
@@ -515,7 +515,7 @@ function dataExplorer() {
                 'customer': '/api/customers',
                 'project': '/api/projects',
                 'quote': '/api/quotes',
-                'freight-request': '/api/freight-requests'
+                'vendor-quote': '/api/vendor-quotes'
             };
             return endpoints[this.modalType];
         },
@@ -534,8 +534,8 @@ function dataExplorer() {
                 case 'quote':
                     await this.loadQuotes(this.selectedProject.id);
                     break;
-                case 'freight-request':
-                    await this.loadFreightRequests(this.selectedQuote.id);
+                case 'vendor-quote':
+                    await this.loadVendorQuotes(this.selectedQuote.id);
                     break;
             }
         },
@@ -565,12 +565,12 @@ function dataExplorer() {
                         await this.loadQuotes(this.selectedProject.id);
                     }
                     break;
-                case 'freight-request':
-                    if (this.selectedFreightRequest?.id === updatedItem.id) {
-                        this.selectedFreightRequest = updatedItem;
+                case 'vendor-quote':
+                    if (this.selectedVendorQuote?.id === updatedItem.id) {
+                        this.selectedVendorQuote = updatedItem;
                     }
                     if (this.selectedQuote) {
-                        await this.loadFreightRequests(this.selectedQuote.id);
+                        await this.loadVendorQuotes(this.selectedQuote.id);
                     }
                     break;
             }
@@ -586,7 +586,7 @@ function dataExplorer() {
                 'customer': 'Customer',
                 'project': 'Project',
                 'quote': 'Quote',
-                'freight-request': 'Freight Request'
+                'vendor-quote': 'Vendor Quote'
             };
 
             const typeLabel = typeLabels[type] || 'Item';
@@ -594,11 +594,11 @@ function dataExplorer() {
             // Check for cascade implications
             let cascadeMessage = '';
             if (type === 'customer') {
-                cascadeMessage = 'This will also delete all related projects, quotes, and freight requests.';
+                cascadeMessage = 'This will also delete all related projects, quotes, and vendor quotes.';
             } else if (type === 'project') {
-                cascadeMessage = 'This will also delete all related quotes and freight requests.';
+                cascadeMessage = 'This will also delete all related quotes and vendor quotes.';
             } else if (type === 'quote') {
-                cascadeMessage = 'This will also delete all related freight requests.';
+                cascadeMessage = 'This will also delete all related vendor quotes.';
             }
 
             if (confirm(`Are you sure you want to delete this ${typeLabel}? ${cascadeMessage}`)) {
@@ -652,23 +652,23 @@ function dataExplorer() {
                     }
                     this.selectedProject = null;
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     this.quotes = [];
-                    this.freightRequests = [];
+                    this.vendorQuotes = [];
                     break;
                 case 'quote':
                     if (this.selectedProject) {
                         await this.loadQuotes(this.selectedProject.id);
                     }
                     this.selectedQuote = null;
-                    this.selectedFreightRequest = null;
-                    this.freightRequests = [];
+                    this.selectedVendorQuote = null;
+                    this.vendorQuotes = [];
                     break;
-                case 'freight-request':
+                case 'vendor-quote':
                     if (this.selectedQuote) {
-                        await this.loadFreightRequests(this.selectedQuote.id);
+                        await this.loadVendorQuotes(this.selectedQuote.id);
                     }
-                    this.selectedFreightRequest = null;
+                    this.selectedVendorQuote = null;
                     break;
             }
         },
@@ -679,15 +679,15 @@ function dataExplorer() {
             } else if (type === 'project' && this.selectedProject?.id === deletedId) {
                 this.selectedProject = null;
                 this.selectedQuote = null;
-                this.selectedFreightRequest = null;
+                this.selectedVendorQuote = null;
                 this.quotes = [];
-                this.freightRequests = [];
+                this.vendorQuotes = [];
             } else if (type === 'quote' && this.selectedQuote?.id === deletedId) {
                 this.selectedQuote = null;
-                this.selectedFreightRequest = null;
-                this.freightRequests = [];
-            } else if (type === 'freight-request' && this.selectedFreightRequest?.id === deletedId) {
-                this.selectedFreightRequest = null;
+                this.selectedVendorQuote = null;
+                this.vendorQuotes = [];
+            } else if (type === 'vendor-quote' && this.selectedVendorQuote?.id === deletedId) {
+                this.selectedVendorQuote = null;
             }
         }
     };

@@ -12,12 +12,12 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from ..models import (
-    CustomerCreate, CustomerUpdate, CustomerResponse,
+    CustomerCreate, CustomerUpdate, CustomerResponseEnhanced,
     CreateResponse, UpdateResponse, DeleteResponse
 )
 from ..dependencies import (
     get_database_manager, ValidationHelper,
-    validate_choice, get_valid_industries, get_valid_statuses,
+    validate_choice, get_valid_statuses,
     format_error_response, format_success_response,
     calculate_item_counts
 )
@@ -33,7 +33,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[CustomerResponse])
+@router.get("/", response_model=List[CustomerResponseEnhanced])
 async def get_customers(db=Depends(get_database_manager)):
     """
     Get all customers.
@@ -92,19 +92,16 @@ async def create_customer(
     try:
         # Validate required fields
         validated_name = ValidationHelper.validate_required_string(customer.name, "Customer name")
-        validated_industry = ValidationHelper.validate_required_string(customer.industry, "Industry")
         validated_status = ValidationHelper.validate_required_string(customer.status, "Status")
         validated_date = ValidationHelper.validate_date_string(customer.created_date, "Created date")
 
         # Validate choices
-        validate_choice(validated_industry, get_valid_industries(), "Industry")
         validate_choice(validated_status, get_valid_statuses(), "Status")
 
         # Create new customer
         new_customer = {
             "id": db.get_next_id("customers.json"),
             "name": validated_name,
-            "industry": validated_industry,
             "status": validated_status,
             "created_date": validated_date,
             "project_count": 0
@@ -132,7 +129,7 @@ async def create_customer(
         )
 
 
-@router.get("/{customer_id}", response_model=CustomerResponse)
+@router.get("/{customer_id}", response_model=CustomerResponseEnhanced)
 async def get_customer(
     customer_id: int,
     db=Depends(get_database_manager)
@@ -215,11 +212,6 @@ async def update_customer(
             updates["name"] = ValidationHelper.validate_required_string(
                 customer_update.name, "Customer name"
             )
-        if customer_update.industry is not None:
-            updates["industry"] = ValidationHelper.validate_required_string(
-                customer_update.industry, "Industry"
-            )
-            validate_choice(updates["industry"], get_valid_industries(), "Industry")
         if customer_update.status is not None:
             updates["status"] = ValidationHelper.validate_required_string(
                 customer_update.status, "Status"

@@ -21,7 +21,7 @@
          @select-customer.window="selectCustomer($event.detail)"
          @select-project.window="selectProject($event.detail)"
          @select-quote.window="selectQuote($event.detail)"
-         @select-freight-request.window="selectFreightRequest($event.detail)"
+         @select-vendor-quote.window="selectVendorQuote($event.detail)"
          class="app-container">
 
         <!-- Header -->
@@ -71,7 +71,6 @@
                                 </div>
                                 <p class="card-subtitle">
                                     <span x-show="item.id">ID: <span x-text="item.id"></span></span>
-                                    <span x-show="item.industry">• <span x-text="item.industry"></span></span>
                                     <span x-show="item.project_count">• <span x-text="item.project_count"></span> projects</span>
                                 </p>
                             </div>
@@ -186,34 +185,34 @@
                                 <p class="card-subtitle">
                                     <span x-show="item.id">ID: <span x-text="item.id"></span></span>
                                     <span x-show="item.amount">• <span x-text="formatCurrency(item.amount)"></span></span>
-                                    <span x-show="item.freight_request_count">• <span x-text="item.freight_request_count"></span> requests</span>
+                                    <span x-show="item.vendor_quote_count">• <span x-text="item.vendor_quote_count"></span> quotes</span>
                                 </p>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Freight Requests Column -->
+                <!-- Vendor Quotes Column -->
                 <div x-data="genericColumn()"
                      class="column"
-                     x-init="$watch('freightRequests', () => items = freightRequests)"
-                     :items="freightRequests"
+                     x-init="$watch('vendorQuotes', () => items = vendorQuotes)"
+                     :items="vendorQuotes"
                      :class="{ 'disabled': !selectedQuote }">
                     <div class="column-header">
-                        <h3 class="column-title">Freight Requests</h3>
+                        <h3 class="column-title">Vendor Quotes</h3>
                         <div class="column-controls">
-                            <button @click="openModal('freight-request')"
+                            <button @click="openModal('vendor-quote')"
                                     class="sort-button"
-                                    title="Add Freight Request"
+                                    title="Add Vendor Quote"
                                     :disabled="!selectedQuote"
                                     :class="{ 'disabled': !selectedQuote }">
                                 +
                             </button>
                             <select x-model="sortBy" class="sort-select">
-                                <option value="name">Name</option>
+                                <option value="tracking_id">Tracking ID</option>
                                 <option value="status">Status</option>
                                 <option value="id">ID</option>
-                                <option value="priority">Priority</option>
+                                <option value="quoted_amount">Amount</option>
                             </select>
                             <button @click="toggleSort" class="sort-button">
                                 <span x-text="sortOrder === 'asc' ? '↑' : '↓'"></span>
@@ -221,29 +220,29 @@
                         </div>
                     </div>
                     <div class="column-content">
-                        <div x-show="loading.freightRequests" class="loading-indicator">
+                        <div x-show="loading.vendorQuotes" class="loading-indicator">
                             Loading...
                         </div>
-                        <div x-show="error.freightRequests" class="error-state" x-text="error.freightRequests">
+                        <div x-show="error.vendorQuotes" class="error-state" x-text="error.vendorQuotes">
                         </div>
-                        <div x-show="!loading.freightRequests && !error.freightRequests && sortedItems.length === 0 && selectedQuote" class="empty-state">
-                            No freight requests found
+                        <div x-show="!loading.vendorQuotes && !error.vendorQuotes && sortedItems.length === 0 && selectedQuote" class="empty-state">
+                            No vendor quotes found
                         </div>
                         <div x-show="!selectedQuote" class="empty-state">
-                            Select a quote to view freight requests
+                            Select a quote to view vendor quotes
                         </div>
                         <template x-for="item in sortedItems" :key="item.id">
                             <div class="card"
-                                 :class="{ 'selected': selectedFreightRequest?.id === item.id }"
-                                 @click="$dispatch('select-freight-request', item)">
+                                 :class="{ 'selected': selectedVendorQuote?.id === item.id }"
+                                 @click="$dispatch('select-vendor-quote', item)">
                                 <div class="card-title-container">
-                                    <h4 class="card-title" x-text="item.name"></h4>
+                                    <h4 class="card-title" x-text="item.tracking_id || `Vendor Quote ${item.id}`"></h4>
                                     <span class="card-badge" :class="`badge-${item.status}`" x-text="item.status"></span>
                                 </div>
                                 <p class="card-subtitle">
                                     <span x-show="item.id">ID: <span x-text="item.id"></span></span>
                                     <span x-show="item.vendor_name">• <span x-text="item.vendor_name"></span></span>
-                                    <span x-show="item.weight">• <span x-text="item.weight"></span> kg</span>
+                                    <span x-show="item.quoted_amount">• <span x-text="formatCurrency(item.quoted_amount)"></span></span>
                                     <span x-show="item.priority">• <span x-text="item.priority"></span> priority</span>
                                 </p>
                             </div>

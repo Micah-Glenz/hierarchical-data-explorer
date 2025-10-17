@@ -12,27 +12,7 @@
              x-text="validationErrors.name"></div>
     </div>
 
-    <div class="form-field">
-        <label class="form-label">Industry *</label>
-        <select name="industry"
-                x-model="modalData.industry"
-                :required="modalType === 'customer'"
-                class="form-input">
-            <option value="">Select Industry</option>
-            <option value="Technology">Technology</option>
-            <option value="Manufacturing">Manufacturing</option>
-            <option value="Retail">Retail</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Logistics">Logistics</option>
-            <option value="Finance">Finance</option>
-            <option value="Construction">Construction</option>
-            <option value="Energy">Energy</option>
-        </select>
-        <div x-show="validationErrors.industry"
-             class="form-error"
-             x-text="validationErrors.industry"></div>
-    </div>
-
+  
     <div class="form-field">
         <label class="form-label">Status *</label>
         <select name="status"

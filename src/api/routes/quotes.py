@@ -9,7 +9,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 
 from ..models import (
-    QuoteCreate, QuoteUpdate, QuoteResponse,
+    QuoteCreate, QuoteUpdate, QuoteResponseEnhanced,
     CreateResponse, UpdateResponse, DeleteResponse
 )
 from ..dependencies import (
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{project_id}", response_model=List[QuoteResponse])
+@router.get("/{project_id}", response_model=List[QuoteResponseEnhanced])
 async def get_quotes(project_id: int, db=Depends(get_database_manager)):
     """Get all quotes for a specific project."""
     try:

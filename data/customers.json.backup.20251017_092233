@@ -801,11 +801,9 @@
   },
   {
     "id": 51,
-    "name": "Updated Test Customer",
-    "status": "inactive",
+    "name": "Test Customer Without Industry",
+    "status": "active",
     "created_date": "2025-10-17",
-    "project_count": 0,
-    "is_deleted": true,
-    "deleted_at": "2025-10-17T09:22:44.477177"
+    "project_count": 0
   }
 ]
